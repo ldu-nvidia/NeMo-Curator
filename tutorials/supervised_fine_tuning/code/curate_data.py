@@ -139,10 +139,10 @@ def run_curation_pipeline(args: Any, text_files: str, code_files: str) -> None:
     orig_dataset_code = DocumentDataset.read_json(code_files, add_filename=True)
 
     # Create a histogram for different file types -text
-    plot_data(orig_dataset_text, "file_size_histogram_txt.png")
+    #plot_data(orig_dataset_text, "file_size_histogram_txt.png")
 
     # Create a histogram for different file types - code
-    plot_data(orig_dataset_code, "file_size_histogram_code.png")
+    #plot_data(orig_dataset_code, "file_size_histogram_code.png")
 
     # create a field combining fields file type and line count
     orig_dataset_text.df["file_type_count"] = (
@@ -292,8 +292,7 @@ def main():
 
     # Download all the sources and get the list of text and code files.
     text_files = download_sources(1)
-    a = 10
-    #run_curation_pipeline(args, text_files, None)
+    run_curation_pipeline(args, text_files, None)
     '''
     # blend and shuffle datasets
     root_path = os.path.join(DATA_DIR, "curated")

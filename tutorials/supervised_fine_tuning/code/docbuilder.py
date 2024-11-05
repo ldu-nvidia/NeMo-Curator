@@ -62,14 +62,14 @@ class OriginalHFDownloader(DocumentDownloader):
         """
         # download huggingface urls
         filename = os.path.basename(url)
-        output_file = os.path.join(self._download_dir, filename) + ".gz"
+        output_file = os.path.join(self._download_dir, filename) + ".jsonl"
 
         if os.path.exists(output_file):
             print(f"File '{output_file}' already exists, skipping download.")
             return output_file
-        print(f"Downloading dataset from '{url}'...")
-
-        dataset = load_dataset("GaTech-EIC/MG-Verilog", split = "train")
+        
+        print(f"Downloading dataset '{url}' from huggingface")
+        dataset = load_dataset(url, split = "train")
 
         # this will not work, writte argument must be string not datasetdict
         with gzip.open(output_file, "wt") as file:
@@ -96,63 +96,22 @@ class HFDownloader(DocumentDownloader):
 
     # function to just download dataset from hf
     def download(self, url: str) -> str:
+
+        # download huggingface urls
+        filename = os.path.basename(url)
+        output_file = os.path.join(self._download_dir, filename) + ".jsonl"
+        if os.path.exists(output_file):
+            print(f"File '{output_file}' already exists, skipping download.")
+            return output_file
+        
+        print(f"Downloading dataset '{url}' from huggingface")
+        dataset = load_dataset(url, split = "train")
+        print("url to download from hf is: ", url)
         save_path = os.path.join(self._download_dir, url)
-        print("savepath: ", save_path)
-        # load the hf dataset
-        dataset = load_dataset(url, split = 'train')
         # convert dataset into json
         dataset.to_json(save_path + ".jsonl")
         return save_path
-        
 
-    '''
-    def download(self, url: str) -> str:
-        """
-        Download a url and extract content into a zip file.
-
-        Args:
-            url (str): The huggingface URL.
-
-        Returns:
-            str: The path to the downloaded zip file, or None if the download failed.
-        """
-        filename = os.path.basename(url)
-        output_file = os.path.join(self._download_dir, filename) + ".hf.gz"
-        print("this is the output file: ", output_file)
-        
-        dataset = load_dataset("GaTech-EIC/MG-Verilog", split = "train")
-        with open(os.path.join(self._download_dir, filename + "pkl"), 'wb') as f:
-            pickle.dump(dataset, f)
-
-        
-        # download huggingface urls
-        base_download_dir = os.path.join(self._download_dir, filename)
-
-        print("this is basedownload dir: ", base_download_dir)
-        os.makedirs(base_download_dir, exist_ok = True)
-        
-        with open(os.path.join(base_download_dir, "block_summary.jsonl"), "w") as f, open(os.path.join(base_download_dir, "detailed_global_summary.jsonl"), "w") as g, open(os.path.join(base_download_dir, "high_level_global_summary.jsonl"), "w") as p:
-            for idx in range(20):
-                f.write(json.dumps({"input": dataset["code"][idx], "output": dataset["description"][idx]["block_summary"], "id": str(idx+1), "file_extension": ".txt", "file_type": "text","category": "text", "line_count": "100", "size_in_bytes": "1000", "path": "/path"}) + "\n")
-                g.write(json.dumps({"input": dataset["code"][idx], "output": dataset["description"][idx]["detailed_global_summary"]}) + "\n")
-                p.write(json.dumps({"input": dataset["code"][idx], "output": dataset["description"][idx]["high_level_global_summary"]}) + "\n")
-        f.close()
-        g.close()
-        p.close()
-
-        return os.path.join(base_download_dir, "block_summary.jsonl")
-    '''
-
-    '''
-        with open(files[0], "w") as f, open(os.path.join(self._download_dir, "block_summary.jsonl")), open(os.path.join(self._download_dir, "detailed_global_summary.jsonl"), "w") as g, open(os.path.join(self._download_dir, "high_level_global_summary.jsonl"), "w") as p:
-            for idx in range(20):
-                f.write(json.dumps({"input": dataset["code"][idx], "output": dataset["description"][idx]["block_summary"], "id": str(idx+1), "file_extension": ".txt", "file_type": "text","category": "text", "line_count": "100", "size_in_bytes": "1000", "path": "/path"}) + "\n")
-                g.write(json.dumps({"input": dataset["code"][idx], "output": dataset["description"][idx]["detailed_global_summary"]}) + "\n")
-                p.write(json.dumps({"input": dataset["code"][idx], "output": dataset["description"][idx]["high_level_global_summary"]}) + "\n")
-        f.close()
-        g.close()
-        p.close()
-    '''
 class HFIterator(DocumentIterator):
     """
     huggingface document iterator. Will go through the files and parse.
@@ -218,23 +177,11 @@ class HFIterator(DocumentIterator):
                     all_meta, all_content = self.split_contents(example, file_name)
                     return all_meta, all_content
 
-
             for line in file:
-                #count += 1
                 example = []
                 example.append(line.strip())
                 yield split_meta(example)
-"""                if example:
-                    #count_list.append(split_meta(example)[0])
-                    example = []
-                else:
-                    example.append(line.strip())
-                    #count_example += 1"""
-"""            
-            if example:
-                yield split_meta(example)  """
         
-
 class HFExtractor(DocumentExtractor):
 
     def extract(self, content: str) -> Tuple[Set, str]:
