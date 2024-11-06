@@ -126,6 +126,7 @@ def _iterate_and_extract_all_contents(iterator: DocumentIterator,
                         **record_meta,
                     }
                     records.append(line)
+            break
         partition = pd.DataFrame(records)
         filename = os.path.basename(output_path) + "_" + key + "_out"
         output_dir = os.path.dirname(output_path) + "/GaTech-EIC"

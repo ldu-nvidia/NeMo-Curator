@@ -139,9 +139,6 @@ class HFIterator(DocumentIterator):
         result, all_meta, all_content = (), (), ()
         for key in reversed(self.keys):
             line = line.split(key)
-            if len(line) != 2:
-                print("something with line is wrong: ", line)
-            #assert len(line) == 2, "splitting string into two part failed for key: " + key
             result += (line[1],)
             line = line[0]
 

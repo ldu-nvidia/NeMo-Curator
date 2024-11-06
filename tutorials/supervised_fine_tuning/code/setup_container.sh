@@ -17,13 +17,14 @@
 
 # install huggingface cli
 echo "installing huggingface hub"
-pip install -U "huggingface_hub[cli]"
+pip3 install -U "huggingface_hub[cli]"
 
 # read token from secure location
 HF_TOKEN= ""
 # shell script to log into huggingface-hub with token
 echo "login to huggingface cli"
 huggingface-cli login --token $HF_TOKEN --add-to-git-credential
+pip3 install -U datasets
 
 # create directory for storing model and download model from hf
 mkdir mistral-7B-hf

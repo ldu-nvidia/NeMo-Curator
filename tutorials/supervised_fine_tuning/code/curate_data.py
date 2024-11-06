@@ -69,8 +69,19 @@ def download_sources(hf_limit: Optional[int] = None,
     hf_dir = download_huggingface_sources("sources/huggingface_urls.jsonl", limit = hf_limit)
     #wiki_files = get_all_files_paths_under(wiki_dir)
     hf_files = get_all_files_paths_under(hf_dir)
-
-    return hf_files
+    print("all files under path: ", hf_files)
+    # delete original file once extracted into four files
+    code_file = ""
+    text_file = []
+    for file in hf_files:
+        if "code_out.jsonl" in file:
+            code_file += file
+        elif "MG-Verilog.jsonl" in file:
+            os.remove(file)
+            print("removed original download")
+        else:
+            text_file.append(file)
+    return text_file, code_file
 
 def plot_data(orig_dataset: DocumentDataset, filename: str):
     """
@@ -98,7 +109,7 @@ def plot_data(orig_dataset: DocumentDataset, filename: str):
 
 
 
-def run_curation_pipeline(args: Any, text_files: str, code_files: str) -> None:
+def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> None:
     """
     Run the curation pipeline on the Wiki+Arxiv+Github datasets.
 
@@ -109,6 +120,12 @@ def run_curation_pipeline(args: Any, text_files: str, code_files: str) -> None:
     print("Running the curation pipeline...")
     # Initialize the Dask cluster.
     client = get_client(**ArgumentHelper.parse_client_args(args))
+    
+    # Overwrite existing files in the curated directory.
+    out_path = os.path.join(DATA_DIR, "curated")
+    if os.path.isdir(out_path):
+        shutil.rmtree(out_path)
+    os.makedirs(out_path)
 
     # Define data curation steps for text and pdf files
     curation_steps_text = Sequential(
@@ -135,57 +152,54 @@ def run_curation_pipeline(args: Any, text_files: str, code_files: str) -> None:
         ]
     )
 
-    orig_dataset_text = DocumentDataset.read_json(text_files, add_filename=True)
+    for text_file in text_files:
+        orig_dataset_text = DocumentDataset.read_json(text_file, add_filename=True)
+        # Create a histogram for different file types -text
+        #plot_data(orig_dataset_text, "file_size_histogram_txt.png")
+
+        # create a field combining fields file type and line count
+        orig_dataset_text.df["file_type_count"] = (
+            orig_dataset_text.df["file_type"]
+            + " : "
+            + orig_dataset_text.df["line_count"].astype(str)
+        )
+
+        dataset_text = curation_steps_text(orig_dataset_text)
+        dataset_text = dataset_text.persist()
+
+        print(f"Original dataset length for text files: {len(orig_dataset_text.df)}")
+        print(f"After dataprep: {len(dataset_text.df)}")
+        dataset_text.to_json(out_path, write_to_filename=True)
+    
+        separated_data_text = separate_by_metadata(
+        dataset_text.df, out_path, "category"
+        ).compute()
+    
+    
+    '''
+    # curate code
     orig_dataset_code = DocumentDataset.read_json(code_files, add_filename=True)
-
-    # Create a histogram for different file types -text
-    #plot_data(orig_dataset_text, "file_size_histogram_txt.png")
-
-    # Create a histogram for different file types - code
-    #plot_data(orig_dataset_code, "file_size_histogram_code.png")
-
-    # create a field combining fields file type and line count
-    orig_dataset_text.df["file_type_count"] = (
-        orig_dataset_text.df["file_type"]
-        + " : "
-        + orig_dataset_text.df["line_count"].astype(str)
-    )
     orig_dataset_code.df["file_type_count"] = (
         orig_dataset_code.df["file_type"]
         + " : "
         + orig_dataset_code.df["line_count"].astype(str)
     )
-
-    dataset_text = curation_steps_text(orig_dataset_text)
-    dataset_text = dataset_text.persist()
-
-    print(f"Original dataset length for text files: {len(orig_dataset_text.df)}")
-    print(f"After dataprep: {len(dataset_text.df)}")
-
     dataset_code = curation_steps_code(orig_dataset_code)
     dataset_code = dataset_code.persist()
-
     print(f"Original dataset length for code files: {len(orig_dataset_code.df)}")
     print(f"After dataprep: {len(dataset_code.df)}")
 
-    # Overwrite existing files in the curated directory.
-    out_path = os.path.join(DATA_DIR, "curated")
-
-    if os.path.isdir(out_path):
-        shutil.rmtree(out_path)
-
-    os.makedirs(out_path)
-    dataset_text.to_json(out_path, write_to_filename=True)
     dataset_code.to_json(out_path, write_to_filename=True)
 
+    # Create a histogram for different file types - code
+    #plot_data(orig_dataset_code, "file_size_histogram_code.png")
+
     # Split the dataset by file category and save curated files (optional - to create blended datasets)
-    separated_data_text = separate_by_metadata(
-        dataset_text.df, out_path, "category"
-    ).compute()
+
     separated_data_code = separate_by_metadata(
         dataset_code.df, out_path, "category"
     ).compute()
-
+    '''
     client.close()
 
 
@@ -288,10 +302,9 @@ def main():
     # Limit the total number of workers to ensure we don't run out of memory.
     args.n_workers = min(args.n_workers, 8)
     print("Args: ", args)
-    args.files_per_partition = 1
 
     # Download all the sources and get the list of text and code files.
-    text_files = download_sources(1)
+    text_files, code_file = download_sources(1)
     run_curation_pipeline(args, text_files, None)
     '''
     # blend and shuffle datasets
