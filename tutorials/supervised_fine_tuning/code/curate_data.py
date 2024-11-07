@@ -15,7 +15,9 @@
 import argparse
 import os
 import shutil
+import numpy as np
 from typing import Any, Optional, Tuple
+from functools import reduce
 
 import matplotlib.pyplot as plt
 from downloaders import (
@@ -65,11 +67,9 @@ def download_sources(hf_limit: Optional[int] = None,
         tuple: the list of text files and the list of code files.
     """
 
-    #wiki_dir = download_wikipedia_sources("sources/wikipedia_urls.jsonl", limit=5)
     hf_dir = download_huggingface_sources("sources/huggingface_urls.jsonl", limit = hf_limit)
-    #wiki_files = get_all_files_paths_under(wiki_dir)
     hf_files = get_all_files_paths_under(hf_dir)
-    print("all files under path: ", hf_files)
+
     # delete original file once extracted into four files
     code_file = ""
     text_file = []
@@ -82,32 +82,6 @@ def download_sources(hf_limit: Optional[int] = None,
         else:
             text_file.append(file)
     return text_file, code_file
-
-def plot_data(orig_dataset: DocumentDataset, filename: str):
-    """
-    Plot histogram of different file types and corresponding sizes
-
-    Args:
-        dataset (DocumentDataset): Dataset
-        filename (str): Name of the plot to be saved ('sample.png')
-    Returns:
-        None (saves the plotted file in current directory)
-    """
-    # visualize file types and sizes
-    orig_df = orig_dataset.df.compute()
-    orig_df = orig_df.reset_index()
-
-    # Create a histogram for different file types -text
-    fig, ax = plt.subplots(figsize=(10, 6))
-    orig_df.groupby("file_extension")["size_in_bytes"].sum().plot(kind="bar", ax=ax)
-    ax.set_xlabel("file_extension")
-    ax.set_ylabel("size_in_bytes")
-    ax.set_title("File Size Histogram by File Extension")
-
-    # Save the histogram to a file
-    fig.savefig(filename, bbox_inches="tight")
-
-
 
 def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> None:
     """
@@ -152,11 +126,10 @@ def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> None:
         ]
     )
 
+    # keep record of all the entries that pass curation, only keep the entries of the unions of them
+    all_passed_ids = []
     for text_file in text_files:
         orig_dataset_text = DocumentDataset.read_json(text_file, add_filename=True)
-        # Create a histogram for different file types -text
-        #plot_data(orig_dataset_text, "file_size_histogram_txt.png")
-
         # create a field combining fields file type and line count
         orig_dataset_text.df["file_type_count"] = (
             orig_dataset_text.df["file_type"]
@@ -168,16 +141,14 @@ def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> None:
         dataset_text = dataset_text.persist()
 
         print(f"Original dataset length for text files: {len(orig_dataset_text.df)}")
-        print(f"After dataprep: {len(dataset_text.df)}")
-        dataset_text.to_json(out_path, write_to_filename=True)
-    
-        separated_data_text = separate_by_metadata(
-        dataset_text.df, out_path, "category"
-        ).compute()
+        print(f"After data curation: {len(dataset_text.df)}")
+        all_passed_ids.append(dataset_text.df["id"].values.compute())
+        #dataset_text.to_json(out_path, write_to_filename=True)
+    print("finish curating text files!")
     
     
-    '''
     # curate code
+    print("start curating code")
     orig_dataset_code = DocumentDataset.read_json(code_files, add_filename=True)
     orig_dataset_code.df["file_type_count"] = (
         orig_dataset_code.df["file_type"]
@@ -188,18 +159,24 @@ def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> None:
     dataset_code = dataset_code.persist()
     print(f"Original dataset length for code files: {len(orig_dataset_code.df)}")
     print(f"After dataprep: {len(dataset_code.df)}")
+    all_passed_ids.append(dataset_code.df["id"].values.compute())
+    #dataset_code.to_json(out_path, write_to_filename=True)
 
-    dataset_code.to_json(out_path, write_to_filename=True)
 
-    # Create a histogram for different file types - code
-    #plot_data(orig_dataset_code, "file_size_histogram_code.png")
+    selected_ids = list(reduce(np.intersect1d, tuple(all_passed_ids)))
+    print("length of selected entries: ", len(selected_ids))
 
-    # Split the dataset by file category and save curated files (optional - to create blended datasets)
-
+    print("deleting filtered out entries from original text and code")
+    
+    '''
+    separated_data_text = separate_by_metadata(
+        dataset_text.df, out_path, "category"
+        ).compute()
     separated_data_code = separate_by_metadata(
         dataset_code.df, out_path, "category"
     ).compute()
     '''
+    
     client.close()
 
 
@@ -306,6 +283,7 @@ def main():
     # Download all the sources and get the list of text and code files.
     text_files, code_file = download_sources(1)
     run_curation_pipeline(args, text_files, None)
+    
     '''
     # blend and shuffle datasets
     root_path = os.path.join(DATA_DIR, "curated")

@@ -287,7 +287,7 @@ class TextLineCountFilter(DocumentFilter):
     Discard text files based on number of lines.
     """
 
-    def __init__(self, min_lines: int = 10):
+    def __init__(self, min_lines: int = 1):
         super().__init__()
         self._min_lines = min_lines
 

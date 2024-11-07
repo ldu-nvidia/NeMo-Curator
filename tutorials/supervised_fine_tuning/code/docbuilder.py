@@ -103,7 +103,6 @@ class HFDownloader(DocumentDownloader):
         if os.path.exists(output_file):
             print(f"File '{output_file}' already exists, skipping download.")
             return output_file
-        
         print(f"Downloading dataset '{url}' from huggingface")
         dataset = load_dataset(url, split = "train")
         print("url to download from hf is: ", url)
@@ -141,11 +140,10 @@ class HFIterator(DocumentIterator):
             line = line.split(key)
             result += (line[1],)
             line = line[0]
-
             line_count = result[-1].count("  ") + 1
             size_in_bytes = len(result[-1].encode("utf-8"))
             meta = {
-                "id": f"{file_name}-{self._counter}",
+                "id": self._counter,
                 "file_extension": ".txt",
                 "file_type": "text",
                 "category": "text",
@@ -164,8 +162,6 @@ class HFIterator(DocumentIterator):
         self._counter = -1
         file_name = os.path.basename(file_path)
         files = get_all_files_paths_under("data/raw/huggingface/")
-        print("all file names under huggingface: ", files)
-
         with open(files[0], "rt") as file:  
             example = []
             def split_meta(example):

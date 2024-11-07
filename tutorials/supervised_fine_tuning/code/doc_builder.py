@@ -114,7 +114,8 @@ def _iterate_and_extract_all_contents(iterator: DocumentIterator,
         # Iterate over all records in file, save four files including code and 3x descriptions
         for item in iterator.iterate(downloaded_file):
             assert len(item) == 2 and len(item[0]) == 4 and len(item[1]) == 4, "dimensionality of iterated item is wrong!"
-            record_meta, content = item[0][i], item[1][i]
+            ## the key and index of respective contents are reversed
+            record_meta, content = item[0][-(i+1)], item[1][-(i+1)]
             # Extract the text from the record
             extracted = extractor.extract(content)
             if extracted is not None:
@@ -126,7 +127,6 @@ def _iterate_and_extract_all_contents(iterator: DocumentIterator,
                         **record_meta,
                     }
                     records.append(line)
-            break
         partition = pd.DataFrame(records)
         filename = os.path.basename(output_path) + "_" + key + "_out"
         output_dir = os.path.dirname(output_path) + "/GaTech-EIC"
