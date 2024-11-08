@@ -240,7 +240,6 @@ def redact_code(dataset: DocumentDataset) -> DocumentDataset:
     Returns:
         DocumentDataset: The redacted dataset.
     """
-
     # functions to extract comment lines from each row in a dataframe
     def func(row):
         return row["text"][row["text"].find("/*") : row["text"].find("*/") + 2]
@@ -307,7 +306,7 @@ class CodeLineCountFilter(DocumentFilter):
     Discard code files based on number of lines.
     """
 
-    def __init__(self, min_lines: int = 10, max_lines: int = 20000):
+    def __init__(self, min_lines: int = 5, max_lines: int = 20000):
         super().__init__()
         self._min_lines = min_lines
         self._max_lines = max_lines
