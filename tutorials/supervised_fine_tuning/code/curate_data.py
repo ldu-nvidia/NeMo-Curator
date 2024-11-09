@@ -173,55 +173,72 @@ def write_file(data, filename):
 
 
 # list of text files to be splitted, code file string to be splitted
-# then filterout the discarded entries
-def split_datasets(text_files: list, code_files: str, selected_ids: list):
-    out_path = os.path.join(DATA_DIR, "split")
+# then filterout the discarded entries, seed make sure random shuffle is the same for multiple shuffles
+def split_datasets(text_files: list, code_files: str, selected_ids: list, seed: int):
+    out_path = os.path.join(DATA_DIR, "split/")
     if os.path.isdir(out_path):
         shutil.rmtree(out_path)
     os.makedirs(out_path)
+    
 
     # split all text files
     for text_file in text_files:
-        training_output_file = out_path + text_file.rsplit("/")[-1][:-5] + "_train.jsonl"
-        validation_output_file = out_path + text_file.rsplit("/")[-1][:-5] +  "_validation.jsonl"
-        test_output_file = out_path + text_file.rsplit("/")[-1][:-5] + "_test.jsonl"
+        training_output_file = out_path + text_file.rsplit("/")[-1][:-6] + "_train.jsonl"
+        validation_output_file = out_path + text_file.rsplit("/")[-1][:-6] +  "_validation.jsonl"
+        test_output_file = out_path + text_file.rsplit("/")[-1][:-6] + "_test.jsonl"
+        print(training_output_file)
 
         # specify proportion of data for training and validation
         train_proportion = 0.80
         validation_proportion = 0.15
-
         assert train_proportion > 0.0 and validation_proportion > 0.0 and train_proportion + validation_proportion < 1.0, "either train or validation proportion is not right!"
 
         # read and shuffle JSON file objects
         with open(text_file, "r") as f:
+            training_output_file = out_path + text_file.rsplit("/")[-1][:-6] + "_train.jsonl"
+            validation_output_file = out_path + text_file.rsplit("/")[-1][:-6] +  "_validation.jsonl"
+            test_output_file = out_path + text_file.rsplit("/")[-1][:-6] + "_test.jsonl"
             lines = f.readlines()
+            # strip out the id of line and only keep the selected ids
+            lines = [line for line in lines if int(line.split('"id":')[1].split(',"file_extension"')[0]) in selected_ids]
+            assert len(lines) == len(selected_ids), "number of curated text data is not right!"
+            random.seed(seed)
             random.shuffle(lines)
+            # calculate split indices
+            total_lines = len(lines)
+            train_index = int(total_lines * train_proportion)
+            val_index = int(total_lines * (train_proportion + validation_proportion))
 
-        # calculate split indices
-        total_lines = len(lines)
-        train_index = int(total_lines * train_proportion)
-        val_index = int(total_lines * (train_proportion + validation_proportion))
+            # distribute JSON objects into train, validation, tests sets
+            train_data = lines[:train_index]
+            validation_data = lines[train_index:val_index]
+            test_data = lines[val_index:]
 
-        # distribute JSON objects into train, validation, tests sets
+            # write JSON objects to files
+            write_file(train_data, training_output_file)
+            write_file(validation_data, validation_output_file)
+            write_file(test_data, test_output_file)
+            print("finish splitting text train, validation and test data")
+
+    # next split code files
+    with open(code_files, "r") as f:
+        lines = f.readlines()
+        training_output_file = out_path + code_files.rsplit("/")[-1][:-6] + "_train.jsonl"
+        validation_output_file = out_path + code_files.rsplit("/")[-1][:-6] +  "_validation.jsonl"
+        test_output_file = out_path + code_files.rsplit("/")[-1][:-6] + "_test.jsonl"
+        # strip out the id of line and only keep the selected ids
+        lines = [line for line in lines if int(line.split('"id":')[1].split(',"file_extension"')[0]) in selected_ids]
+        assert len(lines) == len(selected_ids), "number of curated code data is not right!"
+        random.seed(seed)
+        random.shuffle(lines)
         train_data = lines[:train_index]
         validation_data = lines[train_index:val_index]
         test_data = lines[val_index:]
-
         # write JSON objects to files
         write_file(train_data, training_output_file)
         write_file(validation_data, validation_output_file)
         write_file(test_data, test_output_file)
-        print("finish generating train, validation and test data")
-        break
-
-def modify_file_path(text_files: list, code_file: str):
-    curated_text_files = [text_file.replace("raw/huggingface/GaTech-EIC", "curated") for text_file in text_files]
-    curated_code_file = code_file.replace("raw/huggingface/GaTech-EIC", "curated")
-    for text_file in curated_text_files:
-        assert os.path.isfile(text_file) == True, "text file: " + text_file + " is missing!"
-    assert os.path.isfile(code_file) == True, "code file: " + code_file + " is missing!"
-
-    return (curated_text_files, curated_code_file)
+        print("finish splitting code train, validation and test data")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -232,15 +249,12 @@ def main():
 
     # Download all the sources and get the list of text and code files.
     text_files, code_file = download_sources(1)
-    print(text_files, code_file)
 
     # curate the text and code data given quality filters
-    #selected_ids = run_curation_pipeline(args, text_files, code_file)
+    selected_ids = run_curation_pipeline(args, text_files, code_file)
 
-    curated_text_files, curated_code_file = modify_file_path(text_files, code_file)
-    print(curated_text_files, curated_code_file)
     # shuffle the data and create train, val, test sets
-    #split_datasets(text_files, code_file, selected_ids)
+    split_datasets(text_files, code_file, selected_ids, 0)
 
 
 if __name__ == "__main__":
