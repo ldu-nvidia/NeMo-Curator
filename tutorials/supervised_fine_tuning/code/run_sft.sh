@@ -1,10 +1,9 @@
 
 # set environment variables
 MODEL="mistral.nemo"
-TRAIN_DS="[databricks-dolly-15k/train.jsonl]"
-VALID_DS="[databricks-dolly-15k/validation.jsonl]"
-TEST_DS="[databricks-dolly-15k/test.jsonl]"
-VALID_NAMES="[databricks-dolly-15k]"
+TRAIN_DS="data/merged/MG-Verilog_block_summary_in_out_train.jsonl"
+VALID_DS="data/merged/MG-Verilog_block_summary_in_out_validation.jsonl"
+TEST_DS="data/merged/MG-Verilog_block_summary_in_out_test.jsonl"
 CONCAT_SAMPLING_PROBS="[1.0]"
 
 # set tensor and pipeline parallel size, TP_SIZE*PP_SIZE == number of available GPUs

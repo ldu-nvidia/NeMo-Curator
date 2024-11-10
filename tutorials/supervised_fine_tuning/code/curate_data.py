@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import argparse
+import copy
 import os
+import json
 import shutil
 import numpy as np
 from typing import Any, Optional, Tuple
@@ -52,7 +54,6 @@ from nemo_curator.utils.script_utils import ArgumentHelper
 
 SCRIPT_DIR_PATH = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(SCRIPT_DIR_PATH, "data")
-
 
 def download_sources(hf_limit: Optional[int] = None,
 ) -> str:
@@ -172,6 +173,36 @@ def write_file(data, filename):
     print("finished writing file: ", filename)
 
 
+def merge_in_output(text_files: list, code_files: list):
+    # create a new folder to save merged results
+    original_text_files = copy.deepcopy(text_files)
+    out_path = os.path.join(DATA_DIR, "merged/")
+    if os.path.isdir(out_path):
+        shutil.rmtree(out_path)
+    os.makedirs(out_path)
+    for i in range(len(text_files)):
+        for j in range(len(text_files[i])):
+            assert "split" in text_files[i][j], "file name is wrong"
+            text_files[i][j] = text_files[i][j].replace("split", "merged").replace("out", "in_out")
+
+    for desc_idx in range(len(original_text_files)):
+        for tvt_idx in range(len(original_text_files[desc_idx])):
+            with open(original_text_files[desc_idx][tvt_idx],"r") as txt, open(code_files[tvt_idx], "r") as code:
+                with open(text_files[desc_idx][tvt_idx], "w") as result:
+                    for one_text, one_code in zip(txt, code):
+                        input = one_text.split(',"id":')[0]
+                        output = one_code.split(',"id":')[0]
+                        id_input = int(one_text.split(',"id":')[1].split(',"file_extension"')[0])
+                        id_output = int(one_text.split(',"id":')[1].split(',"file_extension"')[0])
+                        assert id_input == id_output, "id of text is different from id of code!"
+                        new_entry = {"input": input, "output": output, "id": id_input}
+                        result.write(json.dumps(new_entry) + "\n")
+                    print("finished merging: ", text_files[desc_idx][tvt_idx], '\n')
+                    result.close()
+                txt.close()
+                code.close()
+    print("finished entire data preparation process!!")
+
 # list of text files to be splitted, code file string to be splitted
 # then filterout the discarded entries, seed make sure random shuffle is the same for multiple shuffles
 def split_datasets(text_files: list, code_files: str, selected_ids: list, seed: int):
@@ -179,14 +210,14 @@ def split_datasets(text_files: list, code_files: str, selected_ids: list, seed: 
     if os.path.isdir(out_path):
         shutil.rmtree(out_path)
     os.makedirs(out_path)
-    
 
+    split_text_dirs, split_code_dirs = [], None
     # split all text files
     for text_file in text_files:
         training_output_file = out_path + text_file.rsplit("/")[-1][:-6] + "_train.jsonl"
         validation_output_file = out_path + text_file.rsplit("/")[-1][:-6] +  "_validation.jsonl"
         test_output_file = out_path + text_file.rsplit("/")[-1][:-6] + "_test.jsonl"
-        print(training_output_file)
+        split_text_dirs.append([training_output_file, validation_output_file, test_output_file])
 
         # specify proportion of data for training and validation
         train_proportion = 0.80
@@ -226,6 +257,7 @@ def split_datasets(text_files: list, code_files: str, selected_ids: list, seed: 
         training_output_file = out_path + code_files.rsplit("/")[-1][:-6] + "_train.jsonl"
         validation_output_file = out_path + code_files.rsplit("/")[-1][:-6] +  "_validation.jsonl"
         test_output_file = out_path + code_files.rsplit("/")[-1][:-6] + "_test.jsonl"
+        split_code_dirs = [training_output_file, validation_output_file, test_output_file]
         # strip out the id of line and only keep the selected ids
         lines = [line for line in lines if int(line.split('"id":')[1].split(',"file_extension"')[0]) in selected_ids]
         assert len(lines) == len(selected_ids), "number of curated code data is not right!"
@@ -239,6 +271,14 @@ def split_datasets(text_files: list, code_files: str, selected_ids: list, seed: 
         write_file(validation_data, validation_output_file)
         write_file(test_data, test_output_file)
         print("finish splitting code train, validation and test data")
+    return (split_text_dirs, split_code_dirs)
+
+def delete_intermediate_data():
+    ## to save space
+    shutil.rmtree(os.path.join(DATA_DIR, 'raw/'))
+    shutil.rmtree(os.path.join(DATA_DIR, 'curated/'))
+    shutil.rmtree(os.path.join(DATA_DIR, 'split/'))
+    print("deleted all intermediate files to save space")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -246,15 +286,16 @@ def main():
     # Limit the total number of workers to ensure we don't run out of memory.
     args.n_workers = min(args.n_workers, 8)
     print("Args: ", args)
-
     # Download all the sources and get the list of text and code files.
     text_files, code_file = download_sources(1)
-
     # curate the text and code data given quality filters
     selected_ids = run_curation_pipeline(args, text_files, code_file)
-
     # shuffle the data and create train, val, test sets
-    split_datasets(text_files, code_file, selected_ids, 0)
+    split_text_dirs, split_code_dirs = split_datasets(text_files, code_file, selected_ids, 0)
+    # merge description as input and code as output for SDG applications
+    merge_in_output(split_text_dirs, split_code_dirs)
+    # delete unnecessary files to save space
+    delete_intermediate_data()
 
 
 if __name__ == "__main__":
