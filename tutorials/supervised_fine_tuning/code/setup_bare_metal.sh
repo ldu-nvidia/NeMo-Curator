@@ -15,24 +15,36 @@
 
 # please read the README file first for prerequisites
 
-#python3 -m venv venv
-#source venv/bin/activate
-# read hf access token from token.env
-source token.env
-echo "installing dependency needed for data curation"
-#pip install -r code/requirements.txt
-#pip install cython
-#pip install --extra-index-url https://pypi.nvidia.com ".[cuda12x]"
+# create virtual environment for dependency isolation
+cd ~/
+python3 -m venv sft
+source sft/bin/activate
+
+# install NeMo framework: from source
+git clone https://github.com/NVIDIA/NeMo.git
+cd NeMo/requirements
+pip3 install -r requirements.txt
+#pip3 install cython
+#pip3 install --extra-index-url https://pypi.nvidia.com ".[cuda12x]"
+
+# install NeMo with pip3
+#pip3 install Cython packaging
+#pip3 install nemo_toolkit['all']
 
 # install huggingface cli
+
+# read hf access token from token.env
+source token.env
 echo "installing huggingface hub"
-pip3 install -U "huggingface_hub[cli]"
+pip3 install -U "huggingface_hub[cli]==0.23.2"
+pip3 install -U datasets
 
 # shell script to log into huggingface-hub with token
 echo "login to huggingface cli"
 huggingface-cli login --token $HF_ACCESS_TOKEN --add-to-git-credential
-# might need his to update the datasets package
-#pip3 install -U datasets
+
+# clone the nemo-curator repo
+
 
 # create directory for storing model and download model from hf
 mkdir mistral-7B-hf

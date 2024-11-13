@@ -1,7 +1,7 @@
 # firstly convert the foundation model from .hf to .nemo format
 # convert model from .hf format to .nemo format
 echo "convert nemo model from .hf format to .nemo format, this will take a while..."
-python3 /opt/NeMo/scripts/checkpoint_converters/convert_mistral_7b_hf_to_nemo.py --input_name_or_path=./mistral-7B-hf/ --output_path=mistral.nemo
+python3 ~/Playbooks/sft_playbook/NeMo/scripts/checkpoint_converters/convert_mistral_7b_hf_to_nemo.py --input_name_or_path=./mistral-7B-hf/ --output_path=mistral.nemo
 echo "model format conversion finished!"
 
 # run data curation pipeline
