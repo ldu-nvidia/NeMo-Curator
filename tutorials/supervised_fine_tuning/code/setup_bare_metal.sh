@@ -13,39 +13,89 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# please read the README file first for prerequisites
 
 # create virtual environment for dependency isolation
 cd ~/
-python3 -m venv test
-source test/bin/activate
+python3 -m venv test_11_14
+source test_11_14/bin/activate
 
 # install NeMo framework: from source
 git clone https://github.com/NVIDIA/NeMo.git
-cd NeMo/requirements
-pip3 install -r requirements.txt
+
+# install all the dependency first for NeMo installation
+cd NeMo/requirements/
+pip install -r requirements.txt
+
+# from NeMo github readme
+pip install Cython packaging
+pip install nemo_toolkit['all']
+
+#cd NeMo/requirements
+#pip3 install -r requirements.txt
 #pip3 install cython
+#cd ..
 #pip3 install --extra-index-url https://pypi.nvidia.com ".[cuda12x]"
 
-# install NeMo with pip3
-#pip3 install Cython packaging
-#pip3 install nemo_toolkit['all']
-
 # install huggingface cli
-
 # read hf access token from token.env
+cd ~/
 source token.env
 echo "installing huggingface hub"
-pip3 install -U "huggingface_hub[cli]==0.23.2"
+pip3 install -U "huggingface_hub[cli]"
 pip3 install -U datasets==2.1.0
 
 # shell script to log into huggingface-hub with token
 echo "login to huggingface cli"
 huggingface-cli login --token $HF_ACCESS_TOKEN --add-to-git-credential
 
+# create directory for storing model and download model from hf
+mkdir mistral-7B-hf
+echo "downloading mistral model checkpoint into folder"
+huggingface-cli download mistralai/Mistral-7B-v0.1 --local-dir mistral-7B-hf
+echo "downloading model checkpoint, this will take a while..."
+
+echo "convert nemo model from .hf format to .nemo format, this will take a while..."
+# TODO have issue converting
+#pip3 install transformers --upgrade
+#pip3 install torch 
+python3 NeMo/scripts/checkpoint_converters/convert_mistral_7b_hf_to_nemo.py --input_name_or_path=./mistral-7B-hf/ --output_path=mistral.nemo
+echo "model format conversion finished!"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## TODO install and configure nemo-curator
+# install NeMo with pip3
+#pip3 install Cython packaging
+#pip3 install nemo_toolkit['all']
+
 # clone the nemo-curator repo
 echo "pulling git curator repo"
 git clone https://github.com/ldu-nvidia/NeMo-Curator.git
+sed -i "/nemo_toolkit/d" ./NeMo-Curator/pyproject.toml
+cd NeMo-Curator/
+git checkout sft_playbook_development
+cd ..
+# to prevent nemo-curator install nemo1.0 and override nemo2.0 installation
+#sed -i "/nemo_toolkit/d" ./NeMo-Curator/pyproject.toml
+
 echo "installing dependency for NeMo-Curator"
 pip3 install cython
 pip3 install --extra-index-url https://pypi.nvidia.com "./NeMo-Curator[all]"
@@ -54,19 +104,8 @@ cd NeMo-Curator/tutorials/supervised_fine_tuning/code/
 echo "install packages needed for SFT playbook"
 pip3 install -r requirements.txt
 
-# create directory for storing model and download model from hf
-cd ..
-mkdir mistral-7B-hf
-echo "downloading mistral model checkpoint into folder"
-huggingface-cli download mistralai/Mistral-7B-v0.1 --local-dir mistral-7B-hf
-echo "downloading model checkpoint, this will take a while..."
 
-echo "convert nemo model from .hf format to .nemo format, this will take a while..."
-# TODO have issue converting
-pip3 install transformers --upgrade
-pip3 install torch 
-python3 ~/NeMo/scripts/checkpoint_converters/convert_mistral_7b_hf_to_nemo.py --input_name_or_path=./mistral-7B-hf/ --output_path=mistral.nemo
-echo "model format conversion finished!"
+
 
 # might need this for data curation to work
 #pip3 install -U datasets
