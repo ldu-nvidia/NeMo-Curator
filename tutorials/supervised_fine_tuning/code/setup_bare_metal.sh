@@ -14,95 +14,65 @@
 # limitations under the License.
 
 
-# create virtual environment for dependency isolation
-cd ~/
-python3 -m venv test_11_14
-source test_11_14/bin/activate
 
-# install NeMo framework: from source
-git clone https://github.com/NVIDIA/NeMo.git
+## docker command to start NeMo:24.09 container, this is NeMo2.0 version
+#docker run --gpus all -it --rm -p 8885:8885  -v ~/:/workspace nvcr.io/nvidia/nemo:24.09 
 
-# install all the dependency first for NeMo installation
-cd NeMo/requirements/
-pip install -r requirements.txt
+docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
 
-# from NeMo github readme
-pip install Cython packaging
-pip install nemo_toolkit['all']
-
-#cd NeMo/requirements
-#pip3 install -r requirements.txt
-#pip3 install cython
-#cd ..
-#pip3 install --extra-index-url https://pypi.nvidia.com ".[cuda12x]"
+# uninstall nemo-curator installed by the container and install the latest version instead
+pip uninstall nemo-curator -y
+rm -r /opt/NeMo-Curator
+git clone https://github.com/NVIDIA/NeMo-Curator.git /opt/NeMo-Curator
+python -m pip install --upgrade pip
+pip install --extra-index-url https://pypi.nvidia.com "/opt/NeMo-Curator[all]"
 
 # install huggingface cli
 # read hf access token from token.env
-cd ~/
 source token.env
 echo "installing huggingface hub"
-pip3 install -U "huggingface_hub[cli]"
-pip3 install -U datasets==2.1.0
+pip install -U "huggingface_hub[cli]"
+#pip3 install -U datasets
 
-# shell script to log into huggingface-hub with token
-echo "login to huggingface cli"
-huggingface-cli login --token $HF_ACCESS_TOKEN --add-to-git-credential
 
 # create directory for storing model and download model from hf
-mkdir mistral-7B-hf
-echo "downloading mistral model checkpoint into folder"
-huggingface-cli download mistralai/Mistral-7B-v0.1 --local-dir mistral-7B-hf
+echo "login to huggingface cli"
+huggingface-cli login --token $HF_ACCESS_TOKEN
+mkdir Llama-3.1-8B
+echo "downloading llama3 model checkpoint into folder"
+huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8B
 echo "downloading model checkpoint, this will take a while..."
 
 echo "convert nemo model from .hf format to .nemo format, this will take a while..."
-# TODO have issue converting
-#pip3 install transformers --upgrade
-#pip3 install torch 
-python3 NeMo/scripts/checkpoint_converters/convert_mistral_7b_hf_to_nemo.py --input_name_or_path=./mistral-7B-hf/ --output_path=mistral.nemo
+python3 /opt/NeMo/scripts/checkpoint_converters/convert_llama_hf_to_nemo.py --input_name_or_path=./Llama-3.1-8B/ --output_path=Llama-3.1-8B.nemo
 echo "model format conversion finished!"
 
 
+### everything works till here!
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## TODO install and configure nemo-curator
-# install NeMo with pip3
-#pip3 install Cython packaging
-#pip3 install nemo_toolkit['all']
-
-# clone the nemo-curator repo
-echo "pulling git curator repo"
-git clone https://github.com/ldu-nvidia/NeMo-Curator.git
-sed -i "/nemo_toolkit/d" ./NeMo-Curator/pyproject.toml
-cd NeMo-Curator/
+# install dependency to run DAPT/SFT
+git clone https://github.com/ldu-nvidia/NeMo-Curator/tree/sft_playbook_development
+cd NeMo-Curator
 git checkout sft_playbook_development
-cd ..
-# to prevent nemo-curator install nemo1.0 and override nemo2.0 installation
-#sed -i "/nemo_toolkit/d" ./NeMo-Curator/pyproject.toml
-
-echo "installing dependency for NeMo-Curator"
-pip3 install cython
-pip3 install --extra-index-url https://pypi.nvidia.com "./NeMo-Curator[all]"
-
-cd NeMo-Curator/tutorials/supervised_fine_tuning/code/
+cd tutorials/supervised_fine_tuning/code/
 echo "install packages needed for SFT playbook"
-pip3 install -r requirements.txt
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+# might have issue with opencv version 
+pip install qgrid
+pip uninstall --yes $(pip list --format=freeze | grep opencv)
+# might not need this
+#rm -rf /usr/local/lib/python3.10/dist-packages/cv2/
+pip install opencv-python-headless
+# would be able to run through curate_data.py at this point
+
+python3 data_curation.py
+
+
+# pending is to run actual sft
+
+
 
 
 
@@ -112,12 +82,6 @@ pip3 install -r requirements.txt
 # eiter way should work: pulling and run a prebuilt container or install NeMo framework from the source
 #echo "pull and run nemo training container"
 #docker run --gpus device=1 --shm-size=2g --net=host --ulimit memlock=-1 --rm -it -v ${PWD}:/workspace -w /workspace -v ${PWD}/results:/results nvcr.io/nvidia/nemo:24.07 bash
-
-
-
-
-
-python3 data_curation.py
 
 """# verify the size and integrity of the file
 du -sh databricks-dolly-15k/databricks-dolly-15k.jsonl;
