@@ -18,7 +18,7 @@
 ## docker command to start NeMo:24.09 container, this is NeMo2.0 version
 #docker run --gpus all -it --rm -p 8885:8885  -v ~/:/workspace nvcr.io/nvidia/nemo:24.09 
 
-docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
+docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=1,2,4"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
 
 # uninstall nemo-curator installed by the container and install the latest version instead
 pip uninstall nemo-curator -y
@@ -38,13 +38,15 @@ pip install -U "huggingface_hub[cli]"
 # create directory for storing model and download model from hf
 echo "login to huggingface cli"
 huggingface-cli login --token $HF_ACCESS_TOKEN
-mkdir Llama-3.1-8B
+#mkdir Llama-3.1-8B
+mkdir mistral-7b-v0.3
 echo "downloading llama3 model checkpoint into folder"
-huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8B
+#huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8B
+huggingface-cli download mistralai/mistral-7b-v0.3 --local-dir mistral-7b-v0.3/
 echo "downloading model checkpoint, this will take a while..."
 
 echo "convert nemo model from .hf format to .nemo format, this will take a while..."
-python3 /opt/NeMo/scripts/checkpoint_converters/convert_llama_hf_to_nemo.py --input_name_or_path=./Llama-3.1-8B/ --output_path=Llama-3.1-8B.nemo
+python3 /opt/NeMo/scripts/checkpoint_converters/convert_mistral_7b_hf_to_nemo.py --input_name_or_path=./mistral-7b-v0.3/ --output_path=mistral-7b.nemo
 echo "model format conversion finished!"
 
 
@@ -66,16 +68,10 @@ pip uninstall --yes $(pip list --format=freeze | grep opencv)
 #rm -rf /usr/local/lib/python3.10/dist-packages/cv2/
 pip install opencv-python-headless
 # would be able to run through curate_data.py at this point
-
 python3 data_curation.py
 
 
 # pending is to run actual sft
-
-
-
-
-
 
 # might need this for data curation to work
 #pip3 install -U datasets
