@@ -1,0 +1,309 @@
+[NeMo W 2024-11-27 00:49:33 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:280: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+      def forward(ctx, input, weight, bias, allreduce_dgrad):
+    
+[NeMo W 2024-11-27 00:49:33 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:290: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+      def backward(ctx, grad_output):
+    
+[NeMo W 2024-11-27 00:49:33 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:381: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+      def forward(
+    
+[NeMo W 2024-11-27 00:49:33 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:420: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+      def backward(ctx, grad_output):
+    
+[NeMo W 2024-11-27 00:49:34 nemo_logging:349] /opt/megatron-lm/megatron/core/dist_checkpointing/strategies/torch.py:17: DeprecationWarning: `torch.distributed._sharded_tensor` will be deprecated, use `torch.distributed._shard.sharded_tensor` instead
+      from torch.distributed._sharded_tensor import ShardedTensor as TorchShardedTensor
+    
+[NeMo W 2024-11-27 00:49:34 nemo_logging:349] /opt/megatron-lm/megatron/core/transformer/attention.py:29: DeprecationWarning: The 'megatron.core.transformer.custom_layers.transformer_engine' 
+        module is deprecated and will be removed in 0.10.0. Please use 
+        'megatron.core.extensions.transformer_engine' instead.
+      from megatron.core.transformer.custom_layers.transformer_engine import SplitAlongDim
+    
+[NeMo W 2024-11-27 00:49:35 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/models/language_modeling/megatron_base_prompt_learning_model.py:181: DeprecationWarning: invalid escape sequence '\{'
+      "prompt_template_fields": re.findall("\{(.*?)\}", task.prompt_template),
+    
+[NeMo W 2024-11-27 00:49:35 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/models/language_modeling/megatron_base_model.py:389: DeprecationWarning: invalid escape sequence '\.'
+      return re.fullmatch("[0-9][0-9]\.[0-9][0-9].*", nvidia_torch_version)  # "YY.MM.*"
+    
+[NeMo W 2024-11-27 00:49:35 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/modelopt/torch/quantization/tensor_quant.py:168: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+      quantize_op_abstract = torch.library.impl_abstract("tensorrt::quantize_op")(
+    
+[NeMo W 2024-11-27 00:49:36 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/modules/common/megatron/vocab_parallel_cross_entropy.py:88: DeprecationWarning: invalid escape sequence '\s'
+      """
+    
+[NeMo W 2024-11-27 00:49:37 nemo_logging:349] /opt/NeMo/nemo/collections/asr/parts/utils/wfst_utils.py:1328: DeprecationWarning: invalid escape sequence '\d'
+      width, height = re.findall('\d+', line)
+    
+[NeMo W 2024-11-27 00:49:37 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pyannote/core/notebook.py:134: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed in 3.11. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()`` or ``pyplot.get_cmap()`` instead.
+      cm = get_cmap("Set1")
+    
+[NeMo W 2024-11-27 00:49:37 nemo_logging:349] /opt/NeMo/nemo/collections/asr/modules/rnnt.py:1558: DeprecationWarning: invalid escape sequence '\*'
+      """
+    
+[NeMo W 2024-11-27 00:49:37 nemo_logging:349] /opt/NeMo/nemo/collections/common/data/lhotse/nemo_adapters.py:198: DeprecationWarning: invalid escape sequence '\d'
+      """
+    
+[NeMo W 2024-11-27 00:49:37 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/nvidia/dali/_autograph/pyct/gast_util.py:79: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+      if get_gast_version() < LooseVersion("0.5"):
+    
+[NeMo W 2024-11-27 00:49:37 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/setuptools/_distutils/version.py:337: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+      other = LooseVersion(other)
+    
+[NeMo W 2024-11-27 00:49:38 nemo_logging:349] /opt/NeMo/nemo/collections/asr/parts/utils/vad_utils.py:1109: DeprecationWarning: invalid escape sequence '\s'
+      data = pd.read_csv(path2ground_truth_label, sep="\s+", delimiter=None, header=None)
+    
+[NeMo W 2024-11-27 00:49:38 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+    See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+      ret = run_job(
+    
+[NeMo W 2024-11-27 00:49:38 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/_graveyard/precision.py:49: The `MixedPrecisionPlugin` is deprecated. Use `pytorch_lightning.plugins.precision.MixedPrecision` instead.
+    
+[NeMo W 2024-11-27 00:49:38 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/parts/nlp_overrides.py:1395: DeprecationWarning: torch.set_autocast_gpu_dtype(dtype) is deprecated. Please use torch.set_autocast_dtype('cuda', dtype) instead. (Triggered internally at /opt/pytorch/pytorch/torch/csrc/autograd/init.cpp:678.)
+      torch.set_autocast_gpu_dtype(dtype)
+    
+[NeMo W 2024-11-27 00:49:38 exp_manager:784] There were no checkpoints found in checkpoint_dir or no checkpoint folder at checkpoint_dir :/results/checkpoints. Training from scratch.
+[NeMo W 2024-11-27 00:49:38 exp_manager:1139] The checkpoint callback was told to monitor a validation value and trainer's max_steps was set to 5. Please ensure that max_steps will run for at least 1 epochs to ensure that checkpointing will not error out.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: context_parallel_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: expert_model_parallel_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: moe_extended_tp in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: finalize_model_grads_func in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: deterministic_mode in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: use_te_rng_tracker in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_bulk_wgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_bulk_dgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_rs_dgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_split_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_atomic_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_split_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_atomic_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cross_entropy_loss_fusion in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_disable_qkv in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_disable_fc1 in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: defer_embedding_wgrad_compute in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: wgrad_deferral_limit in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: pipeline_model_parallel_split_rank in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_num_layers in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: _cpu_offloading_context in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_activations in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_weights in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: barrier_with_L1_time in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: context_parallel_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: expert_model_parallel_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: moe_extended_tp in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: finalize_model_grads_func in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: deterministic_mode in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: use_te_rng_tracker in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_bulk_wgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_bulk_dgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_rs_dgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_split_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_atomic_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_split_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_atomic_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cross_entropy_loss_fusion in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_disable_qkv in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_disable_fc1 in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: defer_embedding_wgrad_compute in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: wgrad_deferral_limit in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: pipeline_model_parallel_split_rank in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_num_layers in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: _cpu_offloading_context in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_activations in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_weights in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: barrier_with_L1_time in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: context_parallel_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: expert_model_parallel_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: moe_extended_tp in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: finalize_model_grads_func in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: deterministic_mode in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: use_te_rng_tracker in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_bulk_wgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_bulk_dgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_rs_dgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_split_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_atomic_ag in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_split_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_atomic_rs in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cross_entropy_loss_fusion in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_disable_qkv in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: tp_comm_overlap_disable_fc1 in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: defer_embedding_wgrad_compute in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: wgrad_deferral_limit in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: pipeline_model_parallel_split_rank in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_num_layers in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: _cpu_offloading_context in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_activations in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: cpu_offloading_weights in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:1186] The model: MegatronGPTSFTModel() does not have field.name: barrier_with_L1_time in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:516] apply_query_key_layer_scaling is only enabled when using FP16, setting it to False and setting NVTE_APPLY_QK_LAYER_SCALING=0
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: first_pipeline_num_layers in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: last_pipeline_num_layers in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: activation_func_fp8_input_store in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: num_moe_experts in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: window_size in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: qk_layernorm in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: test_mode in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: calculate_per_token_loss in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: memory_efficient_layer_norm in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: fp8_wgrad in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: fp8_dot_product_attention in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: fp8_multi_head_attention in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: tp_only_amax_red in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_router_load_balancing_type in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_router_topk in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_router_pre_softmax in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_grouped_gemm in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_aux_loss_coeff in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_z_loss_coeff in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_input_jitter_eps in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_token_dropping in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_token_dispatcher_type in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_per_layer_logging in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_expert_capacity_factor in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_pad_expert_input_to_capacity in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_token_drop_policy in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: moe_layer_recompute in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: clone_scatter_output_in_embedding in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: disable_parameter_transpose_cache in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: enable_cuda_graph in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: external_cuda_graph in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 megatron_base_model:574] The model: MegatronGPTSFTModel() does not have field.name: config_logger_dir in its cfg. Add this key to cfg or config_mapping to make to make it configurable.
+[NeMo W 2024-11-27 00:50:21 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/transformer_engine/pytorch/module/base.py:718: UserWarning: To guarantee overlapping TP and SP collectives with the backwardGEMMs, set environment variable CUDA_DEVICE_MAX_CONNECTIONS = 1
+      warnings.warn(
+    
+[NeMo W 2024-11-27 00:51:03 nemo_logging:349] /opt/megatron-lm/megatron/core/dist_checkpointing/strategies/torch.py:755: FutureWarning: `load_state_dict` is deprecated and will be removed in future versions. Please use `load` instead.
+      checkpoint.load_state_dict(
+    
+[NeMo W 2024-11-27 00:51:03 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/torch/distributed/checkpoint/planner_helpers.py:311: FutureWarning: Please use DTensor instead and we are deprecating ShardedTensor.
+      device = getattr(value, "device", None)
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/configuration_validator.py:161: You have overridden `MegatronGPTSFTModel.configure_sharded_model` which is deprecated. Please override the `configure_model` hook instead. Instantiation with the newer hook will be created on the device right away and have the right data type depending on the precision setting in the Trainer.
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/configuration_validator.py:143: You are using the `dataloader_iter` step flavor. If you consume the iterator more than once per step, the `batch_idx` argument in any hook that takes it will not match with the batch index of the last batch consumed. This might have unforeseen effects on callbacks or code that expects to get the correct index. This will also not work well with gradient accumulation. This feature is very experimental and subject to change. Here be dragons.
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/tensor_shape_pb2.py:18: DeprecationWarning: Call to deprecated create function FileDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      DESCRIPTOR = _descriptor.FileDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/tensor_shape_pb2.py:36: DeprecationWarning: Call to deprecated create function FieldDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _descriptor.FieldDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/tensor_shape_pb2.py:29: DeprecationWarning: Call to deprecated create function Descriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _TENSORSHAPEPROTO_DIM = _descriptor.Descriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/types_pb2.py:19: DeprecationWarning: Call to deprecated create function FileDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      DESCRIPTOR = _descriptor.FileDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/types_pb2.py:33: DeprecationWarning: Call to deprecated create function EnumValueDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _descriptor.EnumValueDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/types_pb2.py:27: DeprecationWarning: Call to deprecated create function EnumDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _DATATYPE = _descriptor.EnumDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/resource_handle_pb2.py:20: DeprecationWarning: Call to deprecated create function FileDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      DESCRIPTOR = _descriptor.FileDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/resource_handle_pb2.py:39: DeprecationWarning: Call to deprecated create function FieldDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _descriptor.FieldDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/resource_handle_pb2.py:32: DeprecationWarning: Call to deprecated create function Descriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _RESOURCEHANDLEPROTO_DTYPEANDSHAPE = _descriptor.Descriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/tensor_pb2.py:21: DeprecationWarning: Call to deprecated create function FileDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      DESCRIPTOR = _descriptor.FileDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/tensor_pb2.py:40: DeprecationWarning: Call to deprecated create function FieldDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _descriptor.FieldDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/tensor_pb2.py:33: DeprecationWarning: Call to deprecated create function Descriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _TENSORPROTO = _descriptor.Descriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/summary_pb2.py:20: DeprecationWarning: Call to deprecated create function FileDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      DESCRIPTOR = _descriptor.FileDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/summary_pb2.py:35: DeprecationWarning: Call to deprecated create function EnumValueDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _descriptor.EnumValueDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/summary_pb2.py:29: DeprecationWarning: Call to deprecated create function EnumDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _DATACLASS = _descriptor.EnumDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/summary_pb2.py:74: DeprecationWarning: Call to deprecated create function FieldDescriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _descriptor.FieldDescriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/proto/summary_pb2.py:67: DeprecationWarning: Call to deprecated create function Descriptor(). Note: Create unlinked descriptors is going to go away. Please use get/find descriptors from generated code or query the descriptor_pool.
+      _SUMMARYDESCRIPTION = _descriptor.Descriptor(
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/tensorboard/compat/tensorflow_stub/dtypes.py:326: DeprecationWarning: `np.bool8` is a deprecated alias for `np.bool_`.  (Deprecated NumPy 1.24)
+      np.bool8: (False, True),
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/text_memmap_dataset.py:508: ResourceWarning: unclosed file <_io.BufferedWriter name='data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl.idx.info'>
+      pickle.dump(data, open(idx_fn + ".info", "wb"))
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/text_memmap_dataset.py:263: ResourceWarning: unclosed file <_io.BufferedReader name='data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl.idx.info'>
+      idx_info_dict = pickle.load(open(idx_fn + ".info", "rb"))
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/text_memmap_dataset.py:508: ResourceWarning: unclosed file <_io.BufferedWriter name='data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl.idx.info'>
+      pickle.dump(data, open(idx_fn + ".info", "wb"))
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/text_memmap_dataset.py:263: ResourceWarning: unclosed file <_io.BufferedReader name='data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl.idx.info'>
+      idx_info_dict = pickle.load(open(idx_fn + ".info", "rb"))
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/text_memmap_dataset.py:508: ResourceWarning: unclosed file <_io.BufferedWriter name='data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl.idx.info'>
+      pickle.dump(data, open(idx_fn + ".info", "wb"))
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/text_memmap_dataset.py:263: ResourceWarning: unclosed file <_io.BufferedReader name='data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl.idx.info'>
+      idx_info_dict = pickle.load(open(idx_fn + ".info", "rb"))
+    
+[NeMo W 2024-11-27 00:51:26 nemo_logging:349] /opt/NeMo/nemo/collections/nlp/data/language_modeling/megatron/dataset_utils.py:1332: UserWarning: The torch.cuda.*DtypeTensor constructors are no longer recommended. It's best to use methods such as torch.tensor(data, dtype=*, device='cuda') to create tensors. (Triggered internally at /opt/pytorch/pytorch/torch/csrc/tensor/python_tensor.cpp:78.)
+      counts = torch.cuda.LongTensor([1])
+    
+[NeMo W 2024-11-27 00:51:27 megatron_base_model:1227] Ignoring `trainer.max_epochs` when computing `max_steps` because `trainer.max_steps` is already set to 5.
+[NeMo W 2024-11-27 00:51:27 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/connectors/data_connector.py:424: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=63` in the `DataLoader` to improve performance.
+    
+[NeMo W 2024-11-27 00:51:27 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/loops/utilities.py:148: Found `dataloader_iter` argument in the `validation_step`. Note that the support for this signature is experimental and the behavior is subject to change.
+    
+[NeMo W 2024-11-27 00:51:28 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/mappings.py:168: FutureWarning: `torch.distributed._reduce_scatter_base` is a private function and will be deprecated. Please use `torch.distributed.reduce_scatter_tensor` instead.
+      torch.distributed._reduce_scatter_base(
+    
+[NeMo W 2024-11-27 00:51:28 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:609: UserWarning: async_grad_allreduce is deprecated, not in use anymore and will be fully removed with 0.10.0. Please use allreduce_dgrad instead.
+      warnings.warn(
+    
+[NeMo W 2024-11-27 00:51:28 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:628: UserWarning: When using sequence parallelism it is recommended to set the environment variable CUDA_DEVICE_MAX_CONNECTIONS to 1 for maximum speedup
+      warnings.warn(
+    
+[NeMo W 2024-11-27 00:51:28 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/torch/distributed/c10d_logger.py:78: FutureWarning: `torch.distributed._all_gather_base` is a private function and will be deprecated. Please use `torch.distributed.all_gather_into_tensor` instead.
+      return func(*args, **kwargs)
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/connectors/logger_connector/result.py:431: It is recommended to use `self.log('val_loss', ..., sync_dist=True)` when logging on epoch level in distributed setting to accumulate the metric across devices.
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/connectors/logger_connector/result.py:431: It is recommended to use `self.log('validation_loss_dataloader0', ..., sync_dist=True)` when logging on epoch level in distributed setting to accumulate the metric across devices.
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/connectors/logger_connector/result.py:431: It is recommended to use `self.log('validation_loss', ..., sync_dist=True)` when logging on epoch level in distributed setting to accumulate the metric across devices.
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/trainer/connectors/data_connector.py:424: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=63` in the `DataLoader` to improve performance.
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/loops/utilities.py:148: Found `dataloader_iter` argument in the `training_step`. Note that the support for this signature is experimental and the behavior is subject to change.
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /usr/local/lib/python3.10/dist-packages/pytorch_lightning/loops/fit_loop.py:298: The number of training batches (5) is smaller than the logging interval Trainer(log_every_n_steps=10). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+    
+[NeMo W 2024-11-27 00:51:57 nemo_logging:349] /opt/megatron-lm/megatron/core/tensor_parallel/layers.py:475: FutureWarning: `torch.distributed._reduce_scatter_base` is a private function and will be deprecated. Please use `torch.distributed.reduce_scatter_tensor` instead.
+      handle = torch.distributed._reduce_scatter_base(
+    
+[NeMo W 2024-11-27 00:54:41 gpt_sft_dataset:331] input is not long enough to truncate.
+[NeMo W 2024-11-27 00:56:02 nlp_overrides:610] Distributed checkpoints requires DistributedCheckpointIO plugin to be used. Setting up a default now.
+[NeMo W 2024-11-27 01:02:36 gpt_sft_dataset:331] input is not long enough to truncate.
+[NeMo W 2024-11-27 01:10:28 gpt_sft_dataset:331] input is not long enough to truncate.
+[NeMo W 2024-11-27 01:18:18 gpt_sft_dataset:331] input is not long enough to truncate.
+[NeMo W 2024-11-27 01:26:10 gpt_sft_dataset:331] input is not long enough to truncate.
+[NeMo E 2024-11-27 01:31:22 perf_metrics:84] Failed to calculate TFLOPs per sec per GPU.
+    FLOPs measurement not supported for finetuning jobs
+[NeMo W 2024-11-27 01:32:07 nemo_logging:349] /usr/lib/python3.10/tempfile.py:999: ResourceWarning: Implicitly cleaning up <TemporaryDirectory '/tmp/tmptfotd47l'>
+      _warnings.warn(warn_message, ResourceWarning)
+    

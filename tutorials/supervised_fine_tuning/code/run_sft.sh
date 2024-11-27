@@ -38,7 +38,6 @@ pip install -U "huggingface_hub[cli]"
 # create directory for storing model and download model from hf
 echo "login to huggingface cli"
 huggingface-cli login --token $HF_ACCESS_TOKEN
-#mkdir Llama-3.1-8B
 mkdir mistral-7b-v0.3
 echo "downloading llama3 model checkpoint into folder"
 #huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8B
@@ -71,12 +70,11 @@ pip install opencv-python-headless
 python3 data_curation.py
 
 
-
-# set environment variables
+##### training script for actual sft
 MODEL="../mistral-7b.nemo"
-TRAIN_DS=["data/merged/MG-Verilog_block_summary_in_out_train.jsonl"]
-VALID_DS=["data/merged/MG-Verilog_block_summary_in_out_validation.jsonl"]
-TEST_DS=["data/merged/MG-Verilog_block_summary_in_out_test.jsonl"]
+TRAIN_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl"]
+VALID_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl"]
+TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"]
 CONCAT_SAMPLING_PROBS="[1.0]"
 
 # set tensor and pipeline parallel size, TP_SIZE*PP_SIZE == number of available GPUs
@@ -137,20 +135,19 @@ echo "finished supervised fine tuning, results saved into /results/checkpoint/"
 
 # next is to test the sft model
 # after the SFT step, we evaluate the model using megatron_gpt_generate.py script
-PATH_TO_TRAINED_MODEL=/results/checkpoints/megatron_gpt_peft_none_tuning.nemo
+PATH_TO_TRAINED_MODEL=../sft_high_level_global_summary.nemo
 echo "performing model testing after sft"
 python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py \
     model.restore_from_path=${PATH_TO_TRAINED_MODEL} \
     trainer.devices=1 \
     model.data.test_ds.file_names=${TEST_DS} \
-    model.data.test_ds.names=['MG-Verilog_block_summary_in_out_test'] \
+    model.data.test_ds.names=['MG-Verilog_high_level_global_summary_in_out_test'] \
     model.data.test_ds.global_batch_size=16 \
     model.data.test_ds.micro_batch_size=2 \
     model.data.test_ds.tokens_to_generate=20 \
     model.tensor_model_parallel_size=1 \
     model.pipeline_model_parallel_size=1 \
     inference.greedy=True \
-    model.data.test_ds.output_file_path_prefix=/results/sft_results \
+    model.data.test_ds.output_file_path_prefix=/results/ \
     model.data.test_ds.write_predictions_to_file=True
-echo "finished testing model, here are some sample results: "
-tail -n 5 /results/sft_results.jsonl
+echo "finished testing model, results are saved in /results/ folder"
