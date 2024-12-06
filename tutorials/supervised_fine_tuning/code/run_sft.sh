@@ -18,18 +18,11 @@
 ## docker command to start NeMo:24.09 container, this is NeMo2.0 version
 #docker run --gpus all -it --rm -p 8885:8885  -v ~/:/workspace nvcr.io/nvidia/nemo:24.09 
 
-docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
+docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
 
-# uninstall nemo-curator installed by the container and install the latest version instead
-pip uninstall nemo-curator -y
-rm -r /opt/NeMo-Curator
-git clone https://github.com/NVIDIA/NeMo-Curator.git /opt/NeMo-Curator
-python -m pip install --upgrade pip
-pip install --extra-index-url https://pypi.nvidia.com "/opt/NeMo-Curator[all]"
 
 # install huggingface cli
 # read hf access token from token.env
-
 python -m pip install --upgrade pip
 source token.env
 echo "installing huggingface hub"
@@ -41,12 +34,12 @@ echo "login to huggingface cli"
 huggingface-cli login --token $HF_ACCESS_TOKEN
 mkdir Llama-3.1-8b/
 echo "downloading llama3 model checkpoint into folder"
-#huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8B
 huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8b
 echo "finished downloading Llama3.1-8b model from huggingface"
 
 echo "convert nemo model from .hf format to .nemo format, this will take a while..."
 python3 /opt/NeMo/scripts/checkpoint_converters/convert_llama_hf_to_nemo.py --input_name_or_path=./Llama-3.1-8b/ --output_path=Llama-3.1-8b.nemo
+# check if the converted file exist
 if [ -f "Llama-3.1-8b.nemo" ]; then
     echo "model format conversion finished, delete huggingface model file"
     rm -rf Llama-3.1-8b/
@@ -54,25 +47,6 @@ else
     echo "format conversion failed, exit"
     exit
 fi
-
-# install dependency to run DAPT/SFT
-git clone https://github.com/ldu-nvidia/NeMo-Curator/tree/sft_playbook_development
-cd NeMo-Curator
-git checkout sft_playbook_development
-cd tutorials/supervised_fine_tuning/code/
-echo "install packages needed for SFT playbook"
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-
-# might have issue with opencv version 
-pip install qgrid
-pip uninstall --yes $(pip list --format=freeze | grep opencv)
-# might not need this
-#rm -rf /usr/local/lib/python3.10/dist-packages/cv2/
-pip install opencv-python-headless
-# would be able to run through curate_data.py at this point
-python3 data_curation.py
-
 
 ##### training script for actual sft
 MODEL="//workspace/Llama-3.1-8b.nemo"
@@ -83,18 +57,18 @@ TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"]
 CONCAT_SAMPLING_PROBS="[1.0]"
 
 # set tensor and pipeline parallel size, TP_SIZE*PP_SIZE == number of available GPUs
-TP_SIZE=2
+TP_SIZE=8
 PP_SIZE=1
 
 # now run SFT command by appropriately setting the values for the parameters needed to run the job
 echo "running supervised fine tuning step..."
-torchrun --nproc_per_node=2 \
+torchrun --nproc_per_node=8 \
 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py \
    trainer.precision=bf16 \
-   trainer.devices=2 \
+   trainer.devices=8 \
    trainer.num_nodes=1 \
    trainer.val_check_interval=0.1 \
-   trainer.max_steps=10 \
+   trainer.max_steps=20 \
    model.restore_from_path=${MODEL} \
    model.micro_batch_size=1 \
    model.global_batch_size=128 \

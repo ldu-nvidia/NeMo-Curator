@@ -1,25 +1,27 @@
-# firstly convert the foundation model from .hf to .nemo format
-# convert model from .hf format to .nemo format
+docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
+
+# uninstall nemo-curator installed by the container and install the latest version instead
+pip uninstall nemo-curator -y
+rm -r /opt/NeMo-Curator
+git clone https://github.com/NVIDIA/NeMo-Curator.git /opt/NeMo-Curator
+python -m pip install --upgrade pip
+pip install --extra-index-url https://pypi.nvidia.com /opt/NeMo-Curator[all]
+
+# install dependency to run DAPT/SFT
+git clone https://github.com/ldu-nvidia/NeMo-Curator/tree/sft_playbook_development
+cd NeMo-Curator
+git checkout sft_playbook_development
+cd tutorials/supervised_fine_tuning/code/
+echo "install packages needed for SFT playbook"
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+# might have issue with opencv version 
+pip install qgrid
+pip uninstall --yes $(pip list --format=freeze | grep opencv)
+# might not need this
+#rm -rf /usr/local/lib/python3.10/dist-packages/cv2/
+pip install opencv-python-headless
+
 # run data curation pipeline
 python3 data_curation.py
-
-"""# verify the size and integrity of the file
-du -sh databricks-dolly-15k/databricks-dolly-15k.jsonl;
-sha256sum databricks-dolly-15k/databricks-dolly-15k.jsonl
-
-echo "preprocess data sources to follow correct format"
-python3 /opt/NeMo-Framework-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_dataprep/preprocess.py --input databricks-dolly-15k/databricks-dolly-15k.jsonl
-
-# sanity check for the downloaded data
-echo "checking if jsonl files exist!"
-ls databricks-dolly-15k/
-echo "check first three examples in the output jsonl file!"
-head -n 3 databricks-dolly-15k/databricks-dolly-15k-output.jsonl
-
-# generate data and sanity check
-echo "generating train validation test dataset"
-
-echo "check train val test data are generated"
-cd databricks-dolly-15k/
-echo "check train, val, test data are generated"
-ls"""
