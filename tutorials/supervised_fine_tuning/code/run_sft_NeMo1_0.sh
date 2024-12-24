@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
-## docker command to start NeMo:24.09 container, this is NeMo2.0 version
-#docker run --gpus all -it --rm -p 8885:8885  -v ~/:/workspace nvcr.io/nvidia/nemo:24.09 
-
+# if compute uses slurm, request compute
+srun -G 8 --exclusive -p dgxa100_80g_2tb --pty -t 24:00:00 bash
 
 docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
 
@@ -114,11 +111,9 @@ torchrun --nproc_per_node=8 \
    exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True \
    exp_manager.checkpoint_callback_params.mode=min \
    ++cluster_type=BCP
-echo "finished supervised fine tuning”
 
 
 
-# next is to test the sft model
 cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
 # this is the original model
 MODEL="/workspace/Llama-3.1-8b.nemo"
@@ -152,6 +147,7 @@ python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py 
     model.data.test_ds.truncation_field="null" \
     model.data.test_ds.add_bos=False \
     model.data.test_ds.add_eos=True \
+    model.peft.peft_scheme=none \
     model.data.test_ds.add_sep=False \
     model.data.test_ds.label_key="output" \
     model.data.test_ds.prompt_template="\{input\}\ \{output\}"
