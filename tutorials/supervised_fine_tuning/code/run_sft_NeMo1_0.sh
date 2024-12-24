@@ -29,7 +29,7 @@ pip install -U "huggingface_hub[cli]"
 huggingface-cli login --token $HF_ACCESS_TOKEN
 
 ## download Llama3.1-8b model from HF and convert the format
-"
+
 mkdir Llama-3.1-8b/
 echo "downloading llama3 model checkpoint into folder"
 huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8b
@@ -45,7 +45,7 @@ else
     echo "format conversion failed, exit"
     exit
 fi
-"
+
 
 ##### training script for actual sft
 cd Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
