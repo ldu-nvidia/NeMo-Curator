@@ -23,11 +23,10 @@ docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' 
 
 # install huggingface cli
 # read hf access token from token.env
-python -m pip install --upgrade pip
+python3 -m pip install --upgrade pip
 source token.env
 echo "installing huggingface hub"
-pip install -U "huggingface_hub[cli]"
-#pip3 install -U datasets
+pip3 install -U "huggingface_hub[cli]"
 
 # create directory for storing model and download model from hf
 echo "login to huggingface cli"
@@ -49,8 +48,8 @@ else
 fi
 
 ##### training script for actual sft
-MODEL="//workspace/Llama-3.1-8b.nemo"
-
+cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
+MODEL="/workspace/results_lr20e-6_mb32/checkpoints/megatron_gpt_peft_none_tuning.nemo"
 TRAIN_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl"]
 VALID_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl"]
 TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"]
@@ -59,6 +58,12 @@ CONCAT_SAMPLING_PROBS="[1.0]"
 # set tensor and pipeline parallel size, TP_SIZE*PP_SIZE == number of available GPUs
 TP_SIZE=8
 PP_SIZE=1
+SCHEME="lora"
+LR=2e-5
+BATCH_SIZE=32
+OUTPUT_DIR="/workspace/results_LR_"+"$LR"+"_BATCH_SIZE_"+"$BATCH_SIZE/"
+echo "output directory is " + $OUTPUT_DIR
+
 
 # now run SFT command by appropriately setting the values for the parameters needed to run the job
 echo "running supervised fine tuning step..."
@@ -70,7 +75,7 @@ torchrun --nproc_per_node=8 \
    trainer.val_check_interval=0.1 \
    trainer.max_steps=20 \
    model.restore_from_path=${MODEL} \
-   model.micro_batch_size=1 \
+   model.micro_batch_size=${BATCH_SIZE} \
    model.global_batch_size=128 \
    model.tensor_model_parallel_size=${TP_SIZE} \
    model.pipeline_model_parallel_size=${PP_SIZE} \
@@ -79,7 +84,7 @@ torchrun --nproc_per_node=8 \
    model.activations_checkpoint_granularity=selective \
    model.activations_checkpoint_method=uniform \
    model.optim.name=distributed_fused_adam \
-   model.optim.lr=1e-6 \
+   model.optim.lr=${LR} \
    model.answer_only_loss=True \
    model.peft.peft_scheme=none \
    model.data.train_ds.file_names=${TRAIN_DS} \
@@ -88,45 +93,68 @@ torchrun --nproc_per_node=8 \
    model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
    model.data.train_ds.max_seq_length=2048 \
    model.data.validation_ds.max_seq_length=2048 \
-   model.data.train_ds.micro_batch_size=1 \
+   model.data.train_ds.micro_batch_size=${BATCH_SIZE} \
    model.data.train_ds.global_batch_size=128 \
-   model.data.validation_ds.micro_batch_size=1 \
+   model.data.validation_ds.micro_batch_size=${BATCH_SIZE} \
    model.data.validation_ds.global_batch_size=128 \
-   model.data.test_ds.micro_batch_size=1 \
-   model.data.test_ds.global_batch_size=256 \
-   model.data.train_ds.num_workers=0 \
-   model.data.validation_ds.num_workers=0 \
-   model.data.test_ds.num_workers=0 \
+   model.data.test_ds.micro_batch_size=${BATCH_SIZE} \
+   model.data.test_ds.global_batch_size=128 \
+   model.data.train_ds.num_workers=8 \
+   model.data.validation_ds.num_workers=8 \
+   model.data.test_ds.num_workers=8 \
    model.data.validation_ds.metric.name=loss \
    model.data.test_ds.metric.name=loss \
    exp_manager.create_wandb_logger=False \
-   exp_manager.explicit_log_dir=/results \
+   exp_manager.explicit_log_dir=${OUTPUT_DIR} \
    exp_manager.resume_if_exists=True \
    exp_manager.resume_ignore_no_checkpoint=True \
    exp_manager.create_checkpoint_callback=True \
    exp_manager.checkpoint_callback_params.monitor=validation_loss \
-   exp_manager.checkpoint_callback_params.save_best_model=False \
+   exp_manager.checkpoint_callback_params.save_best_model=True \
    exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True \
    exp_manager.checkpoint_callback_params.mode=min \
    ++cluster_type=BCP
-echo "finished supervised fine tuning, results saved into /results/checkpoint/"
+echo "finished supervised fine tuning"
+
+
 
 
 # next is to test the sft model
 # after the SFT step, we evaluate the model using megatron_gpt_generate.py script
-PATH_TO_TRAINED_MODEL=../sft_high_level_global_summary.nemo
-echo "performing model testing after sft"
+cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
+# this is the original model
+MODEL="/workspace/Llama-3.1-8b.nemo"
+TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"] 
+TEST_NAMES="[testingsftperformance]"
+
+TP_SIZE=8
+PP_SIZE=1
+
+#  this is the model after sft
+PATH_TO_TRAINED_MODEL="/workspace/results_lr20e-6_mb32/checkpoints/megatron_gpt_peft_none_tuning.nemo"
+
+# The generation run will save the generated outputs over the test dataset in a file prefixed like so
+OUTPUT_PREFIX="sft_output"
+
 python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py \
-    model.restore_from_path=${PATH_TO_TRAINED_MODEL} \
-    trainer.devices=1 \
+    model.restore_from_path=${MODEL} \
+    model.peft.restore_from_path=${PATH_TO_TRAINED_MODEL} \
+    trainer.devices=8 \
+    trainer.num_nodes=1 \
     model.data.test_ds.file_names=${TEST_DS} \
-    model.data.test_ds.names=['MG-Verilog_high_level_global_summary_in_out_test'] \
-    model.data.test_ds.global_batch_size=16 \
-    model.data.test_ds.micro_batch_size=2 \
-    model.data.test_ds.tokens_to_generate=20 \
-    model.tensor_model_parallel_size=1 \
-    model.pipeline_model_parallel_size=1 \
-    inference.greedy=True \
-    model.data.test_ds.output_file_path_prefix=/results/ \
-    model.data.test_ds.write_predictions_to_file=True
-echo "finished testing model, results are saved in /results/ folder"
+    model.peft.peft_scheme=none \
+    model.data.test_ds.names=${TEST_NAMES} \
+    model.data.test_ds.global_batch_size=128 \
+    model.data.test_ds.micro_batch_size=32 \
+    model.data.test_ds.tokens_to_generate=400 \
+    model.tensor_model_parallel_size=${TP_SIZE} \
+    model.pipeline_model_parallel_size=${PP_SIZE} \
+    inference.greedy=True  \
+    model.data.test_ds.output_file_path_prefix=${OUTPUT_PREFIX} \
+    model.data.test_ds.write_predictions_to_file=True \
+    model.data.test_ds.truncation_field="null" \
+    model.data.test_ds.add_bos=False \
+    model.data.test_ds.add_eos=True \
+    model.data.test_ds.add_sep=False \
+    model.data.test_ds.label_key="output" \
+    model.data.test_ds.prompt_template="\{input\}\ \{output\}"
