@@ -50,7 +50,8 @@ class DocumentDataset:
         cls,
         input_files: Union[str, List[str]],
         backend: Literal["pandas", "cudf"] = "pandas",
-        files_per_partition: int = 1,
+        files_per_partition: Optional[int] = None,
+        blocksize: Optional[str] = "1gb",
         add_filename: bool = False,
         input_meta: Union[str, dict] = None,
         columns: Optional[List[str]] = None,
@@ -63,7 +64,7 @@ class DocumentDataset:
             input_files: The path of the input file(s).
             backend: The backend to use for reading the data.
             files_per_partition: The number of files to read per partition.
-            add_filename: Whether to add a "filename" column to the DataFrame.
+            add_filename: Whether to add a "file_name" column to the DataFrame.
             input_meta: A dictionary or a string formatted as a dictionary, which outlines
                 the field names and their respective data types within the JSONL input file.
             columns: If not None, only these columns will be read from the file.
@@ -74,8 +75,9 @@ class DocumentDataset:
                 input_files=input_files,
                 file_type="jsonl",
                 backend=backend,
-                files_per_partition=files_per_partition,
                 add_filename=add_filename,
+                files_per_partition=files_per_partition,
+                blocksize=blocksize,
                 input_meta=input_meta,
                 columns=columns,
                 **kwargs,
@@ -87,8 +89,9 @@ class DocumentDataset:
         cls,
         input_files: Union[str, List[str]],
         backend: Literal["pandas", "cudf"] = "pandas",
-        files_per_partition: int = 1,
-        add_filename: bool = False,
+        files_per_partition: Optional[int] = None,
+        blocksize: Optional[str] = "1gb",
+        add_filename=False,
         columns: Optional[List[str]] = None,
         **kwargs,
     ) -> "DocumentDataset":
@@ -99,7 +102,7 @@ class DocumentDataset:
             input_files: The path of the input file(s).
             backend: The backend to use for reading the data.
             files_per_partition: The number of files to read per partition.
-            add_filename: Whether to add a "filename" column to the DataFrame.
+            add_filename: Whether to add a "file_name" column to the DataFrame.
             columns: If not None, only these columns will be read from the file.
                 There is a significant performance gain when specifying columns for Parquet files.
 
@@ -109,8 +112,9 @@ class DocumentDataset:
                 input_files=input_files,
                 file_type="parquet",
                 backend=backend,
-                files_per_partition=files_per_partition,
                 add_filename=add_filename,
+                files_per_partition=files_per_partition,
+                blocksize=blocksize,
                 columns=columns,
                 **kwargs,
             )
@@ -121,8 +125,6 @@ class DocumentDataset:
         cls,
         input_files: Union[str, List[str]],
         backend: Literal["pandas", "cudf"] = "pandas",
-        files_per_partition: int = 1,
-        add_filename: bool = False,
         columns: Optional[List[str]] = None,
         **kwargs,
     ) -> "DocumentDataset":
@@ -133,7 +135,7 @@ class DocumentDataset:
             input_files: The path of the input file(s).
             backend: The backend to use for reading the data.
             files_per_partition: The number of files to read per partition.
-            add_filename: Whether to add a "filename" column to the DataFrame.
+            add_filename: Whether to add a "file_name" column to the DataFrame.
             columns: If not None, only these columns will be read from the file.
 
         """
@@ -142,8 +144,6 @@ class DocumentDataset:
                 input_files=input_files,
                 file_type="pickle",
                 backend=backend,
-                files_per_partition=files_per_partition,
-                add_filename=add_filename,
                 columns=columns,
                 **kwargs,
             )
@@ -234,8 +234,9 @@ def _read_json_or_parquet(
     input_files: Union[str, List[str]],
     file_type: str,
     backend: Literal["cudf", "pandas"],
-    files_per_partition: int,
     add_filename: bool,
+    files_per_partition: Optional[int] = None,
+    blocksize: Optional[str] = None,
     input_meta: Union[str, dict] = None,
     columns: Optional[List[str]] = None,
     **kwargs,
@@ -267,6 +268,7 @@ def _read_json_or_parquet(
                 file_type=file_type,
                 backend=backend,
                 files_per_partition=files_per_partition,
+                blocksize=blocksize,
                 add_filename=add_filename,
                 input_meta=input_meta,
                 columns=columns,
@@ -286,6 +288,7 @@ def _read_json_or_parquet(
                     file_type=file_type,
                     backend=backend,
                     files_per_partition=files_per_partition,
+                    blocksize=blocksize,
                     add_filename=add_filename,
                     input_meta=input_meta,
                     columns=columns,
@@ -311,6 +314,7 @@ def _read_json_or_parquet(
             file_type=file_type,
             backend=backend,
             files_per_partition=files_per_partition,
+            blocksize=blocksize,
             add_filename=add_filename,
             input_meta=input_meta,
             columns=columns,
