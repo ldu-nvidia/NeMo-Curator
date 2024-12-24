@@ -17,6 +17,10 @@ import ast
 import os
 import shutil
 
+import dask
+
+from nemo_curator._compat import DASK_CUDF_PARQUET_READ_INCONSISTENT_SCHEMA
+
 os.environ["RAPIDS_NO_INITIALIZE"] = "1"
 import random
 import warnings
@@ -24,7 +28,7 @@ from contextlib import nullcontext
 from datetime import datetime
 from itertools import zip_longest
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Union
+from typing import Callable, Dict, List, Literal, Optional, Union
 
 import dask.dataframe as dd
 import numpy as np
@@ -269,23 +273,38 @@ def _set_torch_to_use_rmm():
     torch.cuda.memory.change_current_allocator(rmm_torch_allocator)
 
 
+def select_columns(
+    df: Union[dd.DataFrame, pd.DataFrame, "cudf.DataFrame"],
+    columns: List[str],
+    filetype: Literal["jsonl", "json", "parquet"],
+    add_filename: bool,
+) -> Union[dd.DataFrame, pd.DataFrame, "cudf.DataFrame"]:
+    # We exclude parquet because the parquet readers already support column selection
+    if filetype in ["jsonl", "json"] and columns is not None:
+        if add_filename and "file_name" not in columns:
+            columns.append("file_name")
+        df = df[columns]
+
+    return df
+
+
 def read_single_partition(
     files: List[str],
     backend: Literal["cudf", "pandas"] = "cudf",
     filetype: str = "jsonl",
     add_filename: bool = False,
     input_meta: Union[str, dict] = None,
-    columns: Optional[List[str]] = None,
+    io_columns: Optional[List[str]] = None,
     **kwargs,
-) -> Union[cudf.DataFrame, pd.DataFrame]:
+) -> Union["cudf.DataFrame", pd.DataFrame]:
     """
     This function reads a file with cuDF, sorts the columns of the DataFrame
-    and adds a "filename" column.
+    and adds a "file_name" column.
 
     Args:
         files: The path to the jsonl files to read.
         backend: The backend to use for reading the data. Either "cudf" or "pandas".
-        add_filename: Whether to add a "filename" column to the DataFrame.
+        add_filename: Whether to add a "file_name" column to the DataFrame.
         input_meta: A dictionary or a string formatted as a dictionary, which outlines
             the field names and their respective data types within the JSONL input file.
         columns: If not None, only these columns will be read from the file.
@@ -315,9 +334,13 @@ def read_single_partition(
             read_kwargs["dtype"] = (
                 ast.literal_eval(input_meta) if type(input_meta) == str else input_meta
             )
+            # because pandas doesn't support `prune_columns`, it'll always return all columns even when input_meta is specified
+            # to maintain consistency we explicitly set `io_columns` here
+            if backend == "pandas" and not io_columns:
+                io_columns = list(read_kwargs["dtype"].keys())
 
     elif filetype == "parquet":
-        read_kwargs = {"columns": columns}
+        read_kwargs = {"columns": io_columns}
         if backend == "cudf":
             read_f = cudf.read_parquet
         else:
@@ -345,19 +368,134 @@ def read_single_partition(
         for file in files:
             df = read_f(file, **read_kwargs, **kwargs)
             if add_filename:
-                df["filename"] = os.path.basename(file)
+                df["file_name"] = os.path.basename(file)
+            df = select_columns(df, io_columns, filetype, add_filename)
             df_ls.append(df)
+
         df = concat_f(df_ls, ignore_index=True)
     else:
         df = read_f(files, **read_kwargs, **kwargs)
-
-    if filetype in ["jsonl", "json"] and columns is not None:
-        if add_filename and "filename" not in columns:
-            columns.append("filename")
-        df = df[columns]
-
-    df = df[sorted(df.columns)]
+        df = select_columns(df, io_columns, filetype, add_filename)
     return df
+
+
+def read_data_blocksize(
+    input_files: List[str],
+    backend: Literal["cudf", "pandas"],
+    file_type: Literal["parquet", "jsonl"],
+    blocksize: str,
+    add_filename: bool = False,
+    input_meta: Union[str, dict] = None,
+    columns: Optional[List[str]] = None,
+    **kwargs,
+) -> dd.DataFrame:
+
+    read_kwargs = dict()
+
+    postprocessing_func: Optional[Callable[[dd.DataFrame], dd.DataFrame]] = None
+    if file_type == "jsonl":
+        warnings.warn(
+            "If underlying JSONL data does not have a consistent schema, reading with blocksize will fail. "
+            "Please use files_per_partition approach instead."
+        )
+
+        if backend == "pandas":
+            warnings.warn(
+                "Pandas backend with blocksize cannot read multiple JSONL files into a single partition. "
+                "Please use files_per_partition if blocksize exceeds average file size."
+            )
+        read_func = dd.read_json
+        read_kwargs["lines"] = True
+        if input_meta is not None:
+            if backend == "cudf":
+                # To save GPU memory, we prune columns while reading, and keep only those that are
+                # specified in the input_meta
+                read_kwargs["prune_columns"] = True
+
+            read_kwargs["dtype"] = (
+                ast.literal_eval(input_meta)
+                if isinstance(input_meta, str)
+                else input_meta
+            )
+
+            if not columns:
+                # To maintain consistency with the behavior of `read_data_fpp` where passing `input_meta`
+                # only returns those columns, we explicitly set `columns` here
+                columns = list(read_kwargs["dtype"].keys())
+        if add_filename:
+
+            def extract_filename(path: str) -> str:
+                return os.path.basename(path)
+
+            read_kwargs["include_path_column"] = add_filename
+            read_kwargs["path_converter"] = extract_filename
+            postprocessing_func = lambda df: df.rename(columns={"path": "file_name"})
+
+    elif file_type == "parquet":
+        if backend == "cudf" and not DASK_CUDF_PARQUET_READ_INCONSISTENT_SCHEMA:
+            warnings.warn(
+                "If underlying Parquet data does not have consistent schema, reading with blocksize will fail. "
+                "Please update underlying RAPIDS package to version 25.02 or higher, or use files_per_partition approach instead."
+            )
+        elif backend == "pandas":
+            warnings.warn(
+                "If underlying Parquet data does not have a consistent column order, reading with blocksize might fail. "
+                "Please use files_per_partition approach instead."
+            )
+
+        if add_filename:
+            msg = "add_filename and blocksize cannot be set at the same time for Parquet files."
+            raise ValueError(msg)
+        read_func = dd.read_parquet
+        read_kwargs["columns"] = columns
+        # In dask_cudf >= 24.12, aggregate_files is not required, but we've kept here until
+        # it gets in dask (pandas) as well
+        read_kwargs["aggregate_files"] = True
+    else:
+        msg = f"Reading with blocksize is only supported for JSONL and Parquet files, not {file_type=}"
+        raise ValueError(msg)
+
+    with dask.config.set({"dataframe.backend": backend}):
+        df = read_func(input_files, blocksize=blocksize, **read_kwargs, **kwargs)
+        if postprocessing_func is not None:
+            df = postprocessing_func(df)
+
+        output = select_columns(df, columns, file_type, add_filename)
+        return output[sorted(output.columns)]
+
+
+def read_data_files_per_partition(
+    input_files: List[str],
+    file_type: Literal["parquet", "json", "jsonl"],
+    backend: Literal["cudf", "pandas"] = "cudf",
+    add_filename: bool = False,
+    files_per_partition: Optional[int] = None,
+    input_meta: Union[str, dict] = None,
+    columns: Optional[List[str]] = None,
+    **kwargs,
+) -> dd.DataFrame:
+    input_files = sorted(input_files)
+    if files_per_partition > 1:
+        input_files = [
+            input_files[i : i + files_per_partition]
+            for i in range(0, len(input_files), files_per_partition)
+        ]
+    else:
+        input_files = [[file] for file in input_files]
+
+    output = dd.from_map(
+        read_single_partition,
+        input_files,
+        filetype=file_type,
+        backend=backend,
+        add_filename=add_filename,
+        input_meta=input_meta,
+        enforce_metadata=False,
+        io_columns=columns,
+        **kwargs,
+    )
+    output = output[sorted(output.columns)]
+    return output
 
 
 def read_pandas_pickle(
@@ -371,7 +509,7 @@ def read_pandas_pickle(
 
     Args:
         file: The path to the pickle file to read.
-        add_filename: Whether to add a "filename" column to the DataFrame.
+        add_filename: Whether to add a "file_name" column to the DataFrame.
         columns: If not None, only these columns will be read from the file.
     Returns:
         A Pandas DataFrame.
@@ -390,12 +528,13 @@ def read_data(
     input_files: Union[str, List[str]],
     file_type: str = "pickle",
     backend: Literal["cudf", "pandas"] = "cudf",
-    files_per_partition: int = 1,
+    blocksize: Optional[str] = None,
+    files_per_partition: Optional[int] = 1,
     add_filename: bool = False,
     input_meta: Union[str, dict] = None,
     columns: Optional[List[str]] = None,
     **kwargs,
-) -> Union[dd.DataFrame, dask_cudf.DataFrame]:
+) -> dd.DataFrame:
     """
     This function can read multiple data formats and returns a Dask-cuDF DataFrame.
 
@@ -404,7 +543,7 @@ def read_data(
         file_type: The type of the input file(s).
         backend: The backend to use for reading the data.
         files_per_partition: The number of files to read per partition.
-        add_filename: Whether to add a "filename" column to the DataFrame.
+        add_filename: Whether to add a "file_name" column to the DataFrame.
         input_meta: A dictionary or a string formatted as a dictionary, which outlines
             the field names and their respective data types within the JSONL input file.
         columns: If not None, only these columns will be read from the file.
@@ -414,13 +553,8 @@ def read_data(
         A Dask-cuDF or a Dask-pandas DataFrame.
 
     """
-    if backend == "cudf":
-        # Try using cuDF. If not availible will throw an error.
-        test_obj = cudf.Series
-
     if isinstance(input_files, str):
         input_files = [input_files]
-
     if file_type == "pickle":
         df = read_pandas_pickle(
             input_files[0], add_filename=add_filename, columns=columns, **kwargs
@@ -442,30 +576,44 @@ def read_data(
                 "function with the `keep_extensions` parameter."
             )
 
-        print(f"Reading {len(input_files)} files", flush=True)
-        input_files = sorted(input_files)
-
-        if files_per_partition > 1:
-            input_files = [
-                input_files[i : i + files_per_partition]
-                for i in range(0, len(input_files), files_per_partition)
-            ]
-
-        else:
-            input_files = [[file] for file in input_files]
-
-        return dd.from_map(
-            read_single_partition,
-            input_files,
-            filetype=file_type,
-            backend=backend,
-            add_filename=add_filename,
-            input_meta=input_meta,
-            enforce_metadata=False,
-            columns=columns,
-            **kwargs,
+        print(
+            f"Reading {len(input_files)} files with {blocksize=} / {files_per_partition=}",
+            flush=True,
         )
+        if blocksize is not None and files_per_partition is not None:
+            msg = "blocksize and files_per_partition cannot be set at the same time"
+            raise ValueError(msg)
 
+        if blocksize is not None and (
+            file_type == "jsonl" or (file_type == "parquet" and not add_filename)
+        ):
+            return read_data_blocksize(
+                input_files,
+                backend=backend,
+                file_type=file_type,
+                blocksize=blocksize,
+                add_filename=add_filename,
+                input_meta=input_meta,
+                columns=columns,
+                **kwargs,
+            )
+        else:
+            if backend == "cudf" and (
+                file_type == "jsonl" or (file_type == "parquet" and not add_filename)
+            ):
+                warnings.warn(
+                    "Consider passing in blocksize for better control over memory usage."
+                )
+            return read_data_files_per_partition(
+                input_files,
+                file_type=file_type,
+                backend=backend,
+                add_filename=add_filename,
+                files_per_partition=files_per_partition,
+                input_meta=input_meta,
+                columns=columns,
+                **kwargs,
+            )
     else:
         raise RuntimeError("Could not read data, please check file type")
 
@@ -538,14 +686,14 @@ def single_partition_write_with_filename(
     Args:
         df: A DataFrame.
         output_file_dir: The output file path.
-        keep_filename_column: Boolean representing whether to keep or drop the "filename" column, if it exists.
+        keep_filename_column: Boolean representing whether to keep or drop the "file_name" column, if it exists.
         output_type: The type of output file to write. Can be "jsonl" or "parquet".
     Returns:
         If the DataFrame is non-empty, return a Series containing a single element, True.
         If the DataFrame is empty, return a Series containing a single element, False.
 
     """
-    assert "filename" in df.columns
+    assert "file_name" in df.columns
 
     if len(df) > 0:
         empty_partition = False
@@ -561,14 +709,14 @@ def single_partition_write_with_filename(
         success_ser = pd.Series([empty_partition])
 
     if not empty_partition:
-        filenames = df.filename.unique()
+        filenames = df.file_name.unique()
         filenames = list(filenames.values_host) if is_cudf_type(df) else list(filenames)
         num_files = len(filenames)
 
         for filename in filenames:
-            out_df = df[df.filename == filename] if num_files > 1 else df
+            out_df = df[df.file_name == filename] if num_files > 1 else df
             if not keep_filename_column:
-                out_df = out_df.drop("filename", axis=1)
+                out_df = out_df.drop("file_name", axis=1)
 
             filename = (
                 Path(filename).stem if output_type != "bitext" else Path(filename).name
@@ -683,13 +831,13 @@ def write_to_disk(
     """
     This function writes a Dask DataFrame to the specified file path.
     If write_to_filename is True, then it expects the
-    DataFrame to have a "filename" column that specifies where to write the document.
+    DataFrame to have a "file_name" column that specifies where to write the document.
 
     Args:
         df: A Dask DataFrame.
         output_path: The output file path.
-        write_to_filename: Boolean representing whether to write the filename using the "filename" column.
-        keep_filename_column: Boolean representing whether to keep or drop the "filename" column, if it exists.
+        write_to_filename: Boolean representing whether to write the filename using the "file_name" column.
+        keep_filename_column: Boolean representing whether to keep or drop the "file_name" column, if it exists.
         output_type: The type of output file to write. Can be "jsonl" or "parquet".
 
     """
@@ -708,9 +856,9 @@ def write_to_disk(
             )
 
     # output_path is a directory
-    elif write_to_filename and "filename" not in df.columns:
+    elif write_to_filename and "file_name" not in df.columns:
         raise ValueError(
-            "write_using_filename is True but no filename column found in DataFrame"
+            "write_using_filename is True but no file_name column found in DataFrame"
         )
 
     if is_cudf_type(df):
@@ -742,7 +890,7 @@ def write_to_disk(
                 os.makedirs(output_path, exist_ok=True)
                 tmp_output_file_dir = os.path.join(output_path, ".tmp")
                 os.makedirs(tmp_output_file_dir, exist_ok=True)
-                file_name = os.path.basename(list(df.filename.unique())[0])
+                file_name = os.path.basename(list(df.file_name.unique())[0])
             else:
                 tmp_output_file_dir = os.path.join(output_path, ".tmp")
                 os.makedirs(tmp_output_file_dir, exist_ok=True)

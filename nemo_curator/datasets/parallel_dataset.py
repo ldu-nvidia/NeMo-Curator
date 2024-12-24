@@ -87,7 +87,7 @@ class ParallelDataset(DocumentDataset):
         """See `nemo_curator.utils.distributed_utils.write_to_disk` docstring for parameter usage."""
         write_to_disk(
             df=self.df,
-            output_file_dir=output_file_dir,
+            output_path=output_file_dir,
             write_to_filename=write_to_filename,
             output_type="bitext",
         )
@@ -129,7 +129,7 @@ class ParallelDataset(DocumentDataset):
             tgt_lang (str): Target language, in ISO-639-1 (two character) format (e.g. 'en')
             doc_id (str, optional): A string document id to assign to every segment in the file. Defaults to None.
             backend (str, optional): Backend of the data frame. Defaults to "cudf".
-            add_filename (bool, optional): Add filename as an extra field to every segment in the file. Defaults to False.
+            add_filename (bool, optional): Add "file_name" as an extra field to every segment in the file. Defaults to False.
 
         Returns:
             Union[dd.DataFrame, dask_cudf.DataFrame]
@@ -162,6 +162,6 @@ class ParallelDataset(DocumentDataset):
         df_combined["tgt_lang"] = tgt_lang
 
         if add_filename:
-            df_combined["filename"] = remove_path_extension(src_input_file)
+            df_combined["file_name"] = remove_path_extension(src_input_file)
 
         return df_combined
