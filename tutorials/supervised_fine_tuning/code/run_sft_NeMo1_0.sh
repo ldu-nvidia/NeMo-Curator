@@ -18,19 +18,18 @@
 ## docker command to start NeMo:24.09 container, this is NeMo2.0 version
 #docker run --gpus all -it --rm -p 8885:8885  -v ~/:/workspace nvcr.io/nvidia/nemo:24.09 
 
+
 docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
 
-
-# install huggingface cli
-# read hf access token from token.env
-python3 -m pip install --upgrade pip
+python -m pip install --upgrade pip
 source token.env
 echo "installing huggingface hub"
-pip3 install -U "huggingface_hub[cli]"
+pip install -U "huggingface_hub[cli]"
 
-# create directory for storing model and download model from hf
-echo "login to huggingface cli"
 huggingface-cli login --token $HF_ACCESS_TOKEN
+
+## download Llama3.1-8b model from HF and convert the format
+
 mkdir Llama-3.1-8b/
 echo "downloading llama3 model checkpoint into folder"
 huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8b
@@ -46,6 +45,7 @@ else
     echo "format conversion failed, exit"
     exit
 fi
+
 
 ##### training script for actual sft
 cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
@@ -75,7 +75,7 @@ torchrun --nproc_per_node=8 \
    trainer.val_check_interval=0.1 \
    trainer.max_steps=20 \
    model.restore_from_path=${MODEL} \
-   model.micro_batch_size=${BATCH_SIZE} \
+   model.micro_batch_size=32 \
    model.global_batch_size=128 \
    model.tensor_model_parallel_size=${TP_SIZE} \
    model.pipeline_model_parallel_size=${PP_SIZE} \
@@ -84,7 +84,7 @@ torchrun --nproc_per_node=8 \
    model.activations_checkpoint_granularity=selective \
    model.activations_checkpoint_method=uniform \
    model.optim.name=distributed_fused_adam \
-   model.optim.lr=${LR} \
+   model.optim.lr=4e-5 \
    model.answer_only_loss=True \
    model.peft.peft_scheme=none \
    model.data.train_ds.file_names=${TRAIN_DS} \
@@ -93,11 +93,11 @@ torchrun --nproc_per_node=8 \
    model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
    model.data.train_ds.max_seq_length=2048 \
    model.data.validation_ds.max_seq_length=2048 \
-   model.data.train_ds.micro_batch_size=${BATCH_SIZE} \
+   model.data.train_ds.micro_batch_size=32 \
    model.data.train_ds.global_batch_size=128 \
-   model.data.validation_ds.micro_batch_size=${BATCH_SIZE} \
+   model.data.validation_ds.micro_batch_size=32 \
    model.data.validation_ds.global_batch_size=128 \
-   model.data.test_ds.micro_batch_size=${BATCH_SIZE} \
+   model.data.test_ds.micro_batch_size=32 \
    model.data.test_ds.global_batch_size=128 \
    model.data.train_ds.num_workers=8 \
    model.data.validation_ds.num_workers=8 \
@@ -105,7 +105,7 @@ torchrun --nproc_per_node=8 \
    model.data.validation_ds.metric.name=loss \
    model.data.test_ds.metric.name=loss \
    exp_manager.create_wandb_logger=False \
-   exp_manager.explicit_log_dir=${OUTPUT_DIR} \
+   exp_manager.explicit_log_dir=/workspace/results_lr_4e-5_B_32_12_24th \
    exp_manager.resume_if_exists=True \
    exp_manager.resume_ignore_no_checkpoint=True \
    exp_manager.create_checkpoint_callback=True \
@@ -114,13 +114,11 @@ torchrun --nproc_per_node=8 \
    exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True \
    exp_manager.checkpoint_callback_params.mode=min \
    ++cluster_type=BCP
-echo "finished supervised fine tuning"
-
+echo "finished supervised fine tuning”
 
 
 
 # next is to test the sft model
-# after the SFT step, we evaluate the model using megatron_gpt_generate.py script
 cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
 # this is the original model
 MODEL="/workspace/Llama-3.1-8b.nemo"
@@ -142,7 +140,6 @@ python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py 
     trainer.devices=8 \
     trainer.num_nodes=1 \
     model.data.test_ds.file_names=${TEST_DS} \
-    model.peft.peft_scheme=none \
     model.data.test_ds.names=${TEST_NAMES} \
     model.data.test_ds.global_batch_size=128 \
     model.data.test_ds.micro_batch_size=32 \
@@ -158,3 +155,5 @@ python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py 
     model.data.test_ds.add_sep=False \
     model.data.test_ds.label_key="output" \
     model.data.test_ds.prompt_template="\{input\}\ \{output\}"
+
+
