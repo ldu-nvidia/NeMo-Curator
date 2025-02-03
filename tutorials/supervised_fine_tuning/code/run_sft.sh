@@ -16,7 +16,7 @@
 # if compute uses slurm, request compute
 srun -G 8 --exclusive -p dgxa100_80g_2tb --pty -t 24:00:00 bash
 
-docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.09
+docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.12
 
 python -m pip install --upgrade pip
 source token.env
@@ -113,44 +113,5 @@ torchrun --nproc_per_node=8 \
    exp_manager.checkpoint_callback_params.mode=min \
    ++cluster_type=BCP
 
-
-
-# this is the original model
-MODEL="/workspace/Llama-3.1-8b.nemo"
-TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"] 
-TEST_NAMES="[sfttest]"
-
-TP_SIZE=8
-PP_SIZE=1
-
-#  this is the model after sft
-PATH_TO_TRAINED_MODEL="/workspace/results_lr20e-6_mb32/checkpoints/megatron_gpt_peft_none_tuning.nemo"
-
-# The generation run will save the generated outputs over the test dataset in a file prefixed like so
-OUTPUT_PREFIX="result"
-
-#model.peft.restore_from_path=${PATH_TO_TRAINED_MODEL} \
-
-python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py \
-    model.restore_from_path=${PATH_TO_TRAINED_MODEL} \
-    trainer.devices=8 \
-    trainer.num_nodes=1 \
-    model.data.test_ds.file_names=${TEST_DS} \
-    model.data.test_ds.names=${TEST_NAMES} \
-    model.data.test_ds.global_batch_size=128 \
-    model.data.test_ds.micro_batch_size=1 \
-    model.data.test_ds.tokens_to_generate=400 \
-    model.tensor_model_parallel_size=${TP_SIZE} \
-    model.pipeline_model_parallel_size=${PP_SIZE} \
-    inference.greedy=True  \
-    model.data.test_ds.output_file_path_prefix=${OUTPUT_PREFIX} \
-    model.data.test_ds.write_predictions_to_file=True \
-    model.data.test_ds.truncation_field="null" \
-    model.data.test_ds.add_bos=False \
-    model.data.test_ds.add_eos=True \
-    model.peft.peft_scheme=none \
-    model.data.test_ds.add_sep=False \
-    model.data.test_ds.label_key="output" \
-    model.data.test_ds.prompt_template="\{input\}\ \{output\}"
 
 
