@@ -45,21 +45,22 @@ fi
 
 
 ##### training script for actual sft
-cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
-MODEL="/workspace/results_lr20e-6_mb32/checkpoints/megatron_gpt_peft_none_tuning.nemo"
-TRAIN_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl"]
-VALID_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl"]
-TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"]
+DATA_DIR="/code"
+MODEL=Llama-3.1-8b.nemo
+TRAIN_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl)
+VALID_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl)
+TEST_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl)
 CONCAT_SAMPLING_PROBS="[1.0]"
 
-# set tensor and pipeline parallel size, TP_SIZE*PP_SIZE == number of available GPUs
+# set tensor and pipeline parallel size
 TP_SIZE=8
 PP_SIZE=1
-SCHEME="lora"
-LR=2e-5
-BATCH_SIZE=32
-OUTPUT_DIR="/workspace/results_LR_"+"$LR"+"_BATCH_SIZE_"+"$BATCH_SIZE/"
-echo "output directory is " + $OUTPUT_DIR
+
+# key training parameters
+MICRO_BATCH_SIZE=32
+GLOBAL_BATCH_SIZE=128
+LR=4e-5
+MAX_STEP=20
 
 
 # now run SFT command by appropriately setting the values for the parameters needed to run the job
@@ -70,7 +71,7 @@ torchrun --nproc_per_node=8 \
    trainer.devices=8 \
    trainer.num_nodes=1 \
    trainer.val_check_interval=0.1 \
-   trainer.max_steps=20 \
+   trainer.max_steps=1 \
    model.restore_from_path=${MODEL} \
    model.micro_batch_size=32 \
    model.global_batch_size=128 \
@@ -90,19 +91,19 @@ torchrun --nproc_per_node=8 \
    model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
    model.data.train_ds.max_seq_length=2048 \
    model.data.validation_ds.max_seq_length=2048 \
-   model.data.train_ds.micro_batch_size=32 \
-   model.data.train_ds.global_batch_size=128 \
-   model.data.validation_ds.micro_batch_size=32 \
-   model.data.validation_ds.global_batch_size=128 \
-   model.data.test_ds.micro_batch_size=32 \
-   model.data.test_ds.global_batch_size=128 \
+   model.data.train_ds.micro_batch_size=${MICRO_BATCH_SIZE} \
+   model.data.train_ds.global_batch_size=${GLOBAL_BATCH_SIZE} \
+   model.data.validation_ds.micro_batch_size=${MICRO_BATCH_SIZE} \
+   model.data.validation_ds.global_batch_size=${GLOBAL_BATCH_SIZE} \
+   model.data.test_ds.micro_batch_size=${MICRO_BATCH_SIZE} \
+   model.data.test_ds.global_batch_size=${GLOBAL_BATCH_SIZE} \
    model.data.train_ds.num_workers=8 \
    model.data.validation_ds.num_workers=8 \
    model.data.test_ds.num_workers=8 \
    model.data.validation_ds.metric.name=loss \
    model.data.test_ds.metric.name=loss \
    exp_manager.create_wandb_logger=False \
-   exp_manager.explicit_log_dir=/workspace/results_lr_4e-5_B_32_12_24th \
+   exp_manager.explicit_log_dir=${TRAINING_LOG_DIR} \
    exp_manager.resume_if_exists=True \
    exp_manager.resume_ignore_no_checkpoint=True \
    exp_manager.create_checkpoint_callback=True \
@@ -114,11 +115,10 @@ torchrun --nproc_per_node=8 \
 
 
 
-cd /workspace/Documents/Repos/NeMo-Curator/tutorials/supervised_fine_tuning/code
 # this is the original model
 MODEL="/workspace/Llama-3.1-8b.nemo"
 TEST_DS=["data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"] 
-TEST_NAMES="[testingsftperformance]"
+TEST_NAMES="[sfttest]"
 
 TP_SIZE=8
 PP_SIZE=1
@@ -127,17 +127,18 @@ PP_SIZE=1
 PATH_TO_TRAINED_MODEL="/workspace/results_lr20e-6_mb32/checkpoints/megatron_gpt_peft_none_tuning.nemo"
 
 # The generation run will save the generated outputs over the test dataset in a file prefixed like so
-OUTPUT_PREFIX="sft_output"
+OUTPUT_PREFIX="result"
+
+#model.peft.restore_from_path=${PATH_TO_TRAINED_MODEL} \
 
 python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_generate.py \
-    model.restore_from_path=${MODEL} \
-    model.peft.restore_from_path=${PATH_TO_TRAINED_MODEL} \
+    model.restore_from_path=${PATH_TO_TRAINED_MODEL} \
     trainer.devices=8 \
     trainer.num_nodes=1 \
     model.data.test_ds.file_names=${TEST_DS} \
     model.data.test_ds.names=${TEST_NAMES} \
     model.data.test_ds.global_batch_size=128 \
-    model.data.test_ds.micro_batch_size=32 \
+    model.data.test_ds.micro_batch_size=1 \
     model.data.test_ds.tokens_to_generate=400 \
     model.tensor_model_parallel_size=${TP_SIZE} \
     model.pipeline_model_parallel_size=${PP_SIZE} \
