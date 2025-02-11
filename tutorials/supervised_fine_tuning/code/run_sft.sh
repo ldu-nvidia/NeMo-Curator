@@ -25,19 +25,19 @@ pip install -U "huggingface_hub[cli]"
 
 huggingface-cli login --token $HF_ACCESS_TOKEN
 
-## download Llama3.1-8b model from HF and convert the format
+## download Llama2-7b model from HF and convert the format
 
-mkdir Llama-3.1-8b/
-echo "downloading llama3 model checkpoint into folder"
-huggingface-cli download meta-llama/Llama-3.1-8B --local-dir Llama-3.1-8b
-echo "finished downloading Llama3.1-8b model from huggingface"
+mkdir Llama-2-7b/
+echo "downloading llama2 7b model checkpoint into folder"
+huggingface-cli download meta-llama/Llama-2-7b-hf --local-dir Llama-2-7b
+echo "finished downloading Llama-2-7b model from huggingface"
 
 echo "convert nemo model from .hf format to .nemo format, this will take a while..."
-python3 /opt/NeMo/scripts/checkpoint_converters/convert_llama_hf_to_nemo.py --input_name_or_path=./Llama-3.1-8b/ --output_path=Llama-3.1-8b.nemo
+python3 /opt/NeMo/scripts/checkpoint_converters/convert_llama_hf_to_nemo.py --input_name_or_path=./Llama-2-7b/ --output_path=Llama-2-7b.nemo
 # check if the converted file exist
-if [ -f "Llama-3.1-8b.nemo" ]; then
+if [ -f "Llama-2-7b.nemo" ]; then
     echo "model format conversion finished, delete huggingface model file"
-    rm -rf Llama-3.1-8b/
+    rm -rf Llama-2-7b/
 else 
     echo "format conversion failed, exit"
     exit
@@ -46,14 +46,14 @@ fi
 
 ##### training script for actual sft
 DATA_DIR="/code"
-MODEL=Llama-3.1-8b.nemo
+MODEL=Llama-2-7b.nemo
 TRAIN_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl)
 VALID_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl)
 TEST_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl)
 CONCAT_SAMPLING_PROBS="[1.0]"
 
 # set tensor and pipeline parallel size
-TP_SIZE=8
+TP_SIZE=2
 PP_SIZE=1
 
 # key training parameters
@@ -65,10 +65,10 @@ MAX_STEP=20
 
 # now run SFT command by appropriately setting the values for the parameters needed to run the job
 echo "running supervised fine tuning step..."
-torchrun --nproc_per_node=8 \
+torchrun --nproc_per_node=2 \
 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py \
    trainer.precision=bf16 \
-   trainer.devices=8 \
+   trainer.devices=2 \
    trainer.num_nodes=1 \
    trainer.val_check_interval=0.1 \
    trainer.max_steps=1 \
@@ -97,9 +97,9 @@ torchrun --nproc_per_node=8 \
    model.data.validation_ds.global_batch_size=${GLOBAL_BATCH_SIZE} \
    model.data.test_ds.micro_batch_size=${MICRO_BATCH_SIZE} \
    model.data.test_ds.global_batch_size=${GLOBAL_BATCH_SIZE} \
-   model.data.train_ds.num_workers=8 \
-   model.data.validation_ds.num_workers=8 \
-   model.data.test_ds.num_workers=8 \
+   model.data.train_ds.num_workers=2 \
+   model.data.validation_ds.num_workers=2 \
+   model.data.test_ds.num_workers=2 \
    model.data.validation_ds.metric.name=loss \
    model.data.test_ds.metric.name=loss \
    exp_manager.create_wandb_logger=False \

@@ -87,7 +87,7 @@ def download_sources(hf_limit: Optional[int] = None,
 
 def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> list:
     """
-    Run the curation pipeline on the Wiki+Arxiv+Github datasets.
+    Run the curation pipeline on the verilog dataset.
 
     Args:
         args (Any): Command-line arguments.
@@ -138,6 +138,7 @@ def run_curation_pipeline(args: Any, text_files: list, code_files: str) -> list:
             + orig_dataset_text.df["line_count"].astype(str)
         )
         dataset_text = curation_steps_text(orig_dataset_text)
+        # execute the data curation
         dataset_text = dataset_text.persist()
         dataset_text.to_json(out_path, write_to_filename=True)
         print(f"Original dataset length for text files: {len(orig_dataset_text.df)}")

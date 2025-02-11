@@ -23,7 +23,22 @@ This tutorial uses container `nemo:24.12` please make sure you are able to pull 
 
 ---
 
-Walk through
+**Walk through**
+
+---
+
+Before doing SFT, high quality domain specific data is needed. In this section, we will walk you through steps from downloading domain specific open source data, preprocessing, filter and deduplicate the data to form training dataset for SFT, the related codes are `curate_data.sh` which install dependency to run `curate_data.py` and the data curation pipeline is composed of the following steps. **Note the data curation use DASK data science framework which curate data in parallel on GPU, greatly increase the throughput.
+
+* Step 1: download dataset with link specified in `sources/huggingface_urls.jsonl`
+* Step 2: run curation pipeline which is composed of
+  * cleans and unifies given dataset using a set of predefined cleaners
+  * filter out low quality entries by a series of predefined rules, the rules are slightly differnt between text and code which include additional step of removing personaly identifiable information, filters common to text and code include:
+    * word count
+    * percentage of top n-gram
+    * percentage of data composed of URLs
+  * deduplicate data which are exactly the same or almost the same
+* Step 3: randomly shuffle the verilog code and text description pairs with the same random seed. Then separate the entire dataset into train, validation and test set of predefined ratio. In this tutorial, the ratio is 80%, 15% and 5% respectively
+* Step 4: merge the verilog codes and their corresponding description into a single merged dataset ready for SFT
 
 ---
 
@@ -38,7 +53,7 @@ In this section, we will walk you through the domain adapted supervised fine tun
 
 ---
 
-Usage
+**Usage**
 
 ---
 
