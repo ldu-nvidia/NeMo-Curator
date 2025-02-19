@@ -14,15 +14,14 @@
 # limitations under the License.
 
 # if compute uses slurm, request compute
-srun -G 8 --exclusive -p dgxa100_80g_2tb --pty -t 24:00:00 bash
+srun -G 2 --exclusive -p dgxa100_80g_2tb --pty -t 24:00:00 bash
 
-docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1,2,3,4,5,6,7"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.12
+docker run -it -p 8080:8080 -p 8088:8088 --rm --gpus '"device=0,1"' --ipc=host --network host -v $(pwd):/workspace nvcr.io/nvidia/nemo:24.12
 
 python -m pip install --upgrade pip
 source token.env
 echo "installing huggingface hub"
-pip install -U "huggingface_hub[cli]"
-
+pip3 install -U "huggingface_hub[cli]"
 huggingface-cli login --token $HF_ACCESS_TOKEN
 
 ## download Llama2-7b model from HF and convert the format
@@ -43,13 +42,13 @@ else
     exit
 fi
 
+#TRAIN_DS=[${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl]
+#VALID_DS=[${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl]
+#TEST_DS=[${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl]
 
 ##### training script for actual sft
 DATA_DIR="/code"
 MODEL=Llama-2-7b.nemo
-TRAIN_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_train.jsonl)
-VALID_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl)
-TEST_DS=(${DATA_DIR}/data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl)
 CONCAT_SAMPLING_PROBS="[1.0]"
 
 # set tensor and pipeline parallel size
@@ -57,8 +56,8 @@ TP_SIZE=2
 PP_SIZE=1
 
 # key training parameters
-MICRO_BATCH_SIZE=32
-GLOBAL_BATCH_SIZE=128
+MICRO_BATCH_SIZE=4
+GLOBAL_BATCH_SIZE=8
 LR=4e-5
 MAX_STEP=20
 
@@ -71,10 +70,10 @@ torchrun --nproc_per_node=2 \
    trainer.devices=2 \
    trainer.num_nodes=1 \
    trainer.val_check_interval=0.1 \
-   trainer.max_steps=1 \
+   trainer.max_steps=4 \
    model.restore_from_path=${MODEL} \
-   model.micro_batch_size=32 \
-   model.global_batch_size=128 \
+   model.micro_batch_size=${MICRO_BATCH_SIZE} \
+   model.global_batch_size=${GLOBAL_BATCH_SIZE} \
    model.tensor_model_parallel_size=${TP_SIZE} \
    model.pipeline_model_parallel_size=${PP_SIZE} \
    model.megatron_amp_O2=True \
@@ -85,9 +84,9 @@ torchrun --nproc_per_node=2 \
    model.optim.lr=4e-5 \
    model.answer_only_loss=True \
    model.peft.peft_scheme=none \
-   model.data.train_ds.file_names=${TRAIN_DS} \
-   model.data.validation_ds.file_names=${VALID_DS} \
-   model.data.test_ds.file_names=${TEST_DS} \
+   model.data.train_ds.file_names=["code/data/merged/MG-Verilog_detailed_global_summary_in_out_train.jsonl"] \
+   model.data.validation_ds.file_names=["code/data/merged/MG-Verilog_high_level_global_summary_in_out_validation.jsonl"] \
+   model.data.test_ds.file_names=["code/data/merged/MG-Verilog_high_level_global_summary_in_out_test.jsonl"] \
    model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
    model.data.train_ds.max_seq_length=2048 \
    model.data.validation_ds.max_seq_length=2048 \
@@ -112,6 +111,3 @@ torchrun --nproc_per_node=2 \
    exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True \
    exp_manager.checkpoint_callback_params.mode=min \
    ++cluster_type=BCP
-
-
-
